@@ -1,0 +1,345 @@
+"""Integration tests that require a running MongoDB.
+
+These are skipped automatically when MongoDB is not reachable.  They exercise
+the real economy engine end-to-end: transfer, deposit, withdraw, interest,
+tax distribution, stocks and games.
+
+Run with:  pytest tests/test_integration.py -v
+"""
+
+import asyncio
+import os
+import sys
+import time
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+os.environ.setdefault("API_ID", "12345")
+os.environ.setdefault("API_HASH", "testhash")
+os.environ.setdefault("BOT_TOKEN", "123:testtoken")
+os.environ.setdefault("MONGO_URI", "mongodb://127.0.0.1:27017")
+os.environ.setdefault("MONGO_DB_NAME", "unoitachi_tests")
+os.environ.setdefault("OWNER_ID", "1")
+os.environ.setdefault("CATBOX_ENABLED", "false")
+
+from database import users as users_db  # noqa: E402
+from database.mongo import mongo  # noqa: E402
+from games import mines as mines_game  # noqa: E402
+from services import (  # noqa: E402
+    bank,
+    economy,
+    group_config,
+    interest,
+    rob as rob_service,
+    rewards,
+    settings as settings_service,
+    stocks,
+    tax,
+)
+from services import game_engine  # noqa: E402
+from utils.cooldown import cooldown_manager  # noqa: E402
+
+A, B = 9101, 9102
+
+
+def mongo_available() -> bool:
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(mongo.connect())
+        loop.run_until_complete(mongo.close())
+        loop.close()
+        return True
+    except Exception:
+        return False
+
+
+pytestmark = pytest.mark.skipif(not mongo_available(), reason="MongoDB not reachable")
+
+
+@pytest.fixture(autouse=True)
+async def clean_db():
+    await mongo.connect()
+    db = mongo.db
+    await db.users.delete_many({"user_id": {"$in": [A, B]}})
+    await db["game_sessions"].delete_many({})
+    await db["game_cooldowns"].delete_many({})
+    await db["tax_pool"].delete_many({})
+    await db["tax_distributions"].delete_many({})
+    await db["transactions"].delete_many({"user_id": {"$in": [A, B]}})
+    await db["stocks"].delete_many({})
+    await db["stock_holdings"].delete_many({})
+    await db["group_config"].delete_many({})
+    await db["settings"].delete_many({})
+    await settings_service.update_settings(starting_balance=0)
+    await users_db.get_or_create_user(A, "user_a", "User A")
+    await users_db.get_or_create_user(B, "user_b", "User B")
+    yield
+    await mongo.close()
+
+
+async def test_user_creation_and_give():
+    await users_db.get_or_create_user(A, "user_a", "User A")
+    await economy.admin_give(A, 5000, 1)
+    bal = await economy.get_balance(A)
+    assert bal["wallet"] == 5000
+
+
+async def test_starting_balance_applied_to_new_users():
+    await settings_service.update_settings(starting_balance=50_000)
+    fresh = 9301
+    await mongo.db["users"].delete_many({"user_id": fresh})
+    doc = await users_db.get_or_create_user(fresh, "fresh_user", "Fresh")
+    assert doc["wallet"] == 50_000
+    assert doc["total_earned"] == 0
+    assert (await users_db.get_user(fresh))["wallet"] == 50_000
+    await mongo.db["users"].delete_many({"user_id": fresh})
+
+
+async def test_starting_balance_not_reapplied_on_existing_user():
+    await settings_service.update_settings(starting_balance=50_000)
+    doc = await users_db.get_or_create_user(A, "user_a", "User A")  # already exists (wallet 0)
+    assert doc["wallet"] == 0
+
+
+async def test_pay():
+    await economy.admin_give(A, 50_000, 1)
+    result = await economy.transfer(A, B, 25_000)
+    assert (await economy.get_balance(A))["wallet"] == 25_000
+    assert (await economy.get_balance(B))["wallet"] == 25_000
+    assert result["amount"] == 25_000
+
+
+async def test_pay_self_rejected():
+    await economy.admin_give(A, 50_000, 1)
+    with pytest.raises(economy.EconomyError):
+        await economy.transfer(A, A, 100)
+
+
+async def test_insufficient_balance():
+    with pytest.raises(economy.InsufficientBalance):
+        await economy.remove_wallet(A, 100)
+
+
+async def test_concurrent_double_spend_blocked():
+    await economy.admin_give(A, 1_000_000, 1)
+    results = await asyncio.gather(
+        economy.remove_wallet(A, 600_000, spend=True),
+        economy.remove_wallet(A, 600_000, spend=True),
+        return_exceptions=True,
+    )
+    assert any(isinstance(r, economy.InsufficientBalance) for r in results)
+    assert (await economy.get_balance(A))["wallet"] == 400_000
+
+
+async def test_deposit_withdraw_and_tax():
+    await economy.admin_give(A, 1_000_000, 1)
+    await bank.deposit(A, 500_000)
+    bal = await economy.get_balance(A)
+    assert bal["wallet"] == 500_000 and bal["bank"] == 500_000
+
+    settings = await bank.get_bank_settings()
+    rate = float(settings["withdrawal_tax_rate"])
+    wd = await bank.withdraw(A, 100_000)
+    assert wd["tax"] == int(100_000 * rate / 100)
+    assert wd["received"] == 100_000 - wd["tax"]
+    assert (await tax.get_pool_size()) > 0
+
+
+async def test_interest_idempotent():
+    await economy.admin_give(A, 1_000_000, 1)
+    await bank.deposit(A, 1_000_000)
+    now = int(time.time())
+    paid1 = await interest.process_due_interest(now + 86_400 + 10)
+    paid2 = await interest.process_due_interest(now + 86_400 + 20)
+    assert any(p["user_id"] == A for p in paid1)
+    assert all(p["user_id"] != A for p in paid2)
+
+
+async def test_stock_buy_sell_and_portfolio():
+    await stocks.ensure_market()
+    await stocks.update_market_prices()
+    await economy.admin_give(A, 10_000_000, 1)
+    buy = await stocks.buy_stock(A, "BTC", "0.01")
+    assert buy["cost"] > 0
+    pf = await stocks.portfolio(A)
+    assert any(r["symbol"] == "BTC" for r in pf["rows"])
+    sell = await stocks.sell_stock(A, "BTC", "0.005")
+    assert sell["value"] > 0
+
+
+async def test_stock_sell_over_owned_rejected():
+    await stocks.ensure_market()
+    await economy.admin_give(A, 10_000_000, 1)
+    with pytest.raises(economy.EconomyError):
+        await stocks.sell_stock(A, "BTC", "999")
+
+
+async def test_game_engine_cooldown():
+    await economy.admin_give(A, 1_000_000, 1)
+    await cooldown_manager.clear("fly", A)
+    await game_engine.instant_game(A, "fly", 1_000, won=True, payout=2_000, multiplier=2.0)
+    with pytest.raises(game_engine.GameCooldownError):
+        await game_engine.instant_game(A, "fly", 1_000, won=True, payout=2_000, multiplier=2.0)
+    await cooldown_manager.clear("fly", A)
+
+
+async def test_game_bet_validation_zero():
+    await economy.admin_give(A, 1_000, 1)
+    with pytest.raises((economy.MoneyError, ValueError)):
+        await game_engine.instant_game(A, "fly", 0, won=True, payout=0, multiplier=1.0)
+
+
+async def test_mines_full_round_and_no_double_settle():
+    await economy.admin_give(A, 5_000_000, 1)
+    sid, state = await mines_game.start(A, 5_000)
+    safe_tiles = [t for t in range(36) if t not in state["mines"]]
+    for tile in safe_tiles[:3]:
+        await mines_game.reveal(sid, A, tile)
+    result = await mines_game.cashout(sid, A)
+    assert result["won"] is True and result["payout"] > 0
+    with pytest.raises(game_engine.NoActiveGame):
+        await mines_game.cashout(sid, A)
+
+
+async def test_tax_distribution_idempotent():
+    await users_db.get_or_create_user(A, "user_a", "User A")
+    await economy.admin_give(A, 1_000_000, 1)
+    await bank.deposit(A, 500_000)
+    await bank.withdraw(A, 100_000)
+    now = int(time.time())
+    dist = await tax.distribute_monthly(now=now + 40 * 86_400)
+    assert dist is not None and dist["distributed"] > 0
+    assert await tax.distribute_monthly(now=now + 40 * 86_400) is None
+
+
+async def test_tax_manual_distribution_is_not_month_blocking():
+    await users_db.get_or_create_user(A, "user_a", "User A")
+    await economy.admin_give(A, 1_000_000, 1)
+    await bank.deposit(A, 500_000)
+    await bank.withdraw(A, 100_000)
+    now = int(time.time())
+    manual = await tax.distribute_manual(now=now)
+    assert manual is not None and manual["manual"] is True
+    assert manual["distributed"] > 0
+    assert await tax.get_pool_size() < manual["pool"]
+    # manual run must NOT block the automatic month-end distribution
+    monthly = await tax.distribute_monthly(now=now + 40 * 86_400)
+    assert monthly is not None
+    assert monthly["manual"] is False
+
+
+async def test_group_config_defaults_and_overrides():
+    chat_id = -100_111
+    cfg = await group_config.get_group_config(chat_id)
+    assert cfg["group_enabled"] is True
+    assert cfg["games_enabled"] is True
+
+    cfg = await group_config.update_group_config(chat_id, games_enabled=False)
+    assert cfg["games_enabled"] is False
+    assert cfg["economy_enabled"] is True
+
+    cfg = await group_config.reset_group_config(chat_id)
+    assert cfg["games_enabled"] is True
+
+    assert await group_config.feature_enabled(chat_id, "games") is True
+
+
+async def test_mines_session_bound_to_starting_chat():
+    await economy.admin_give(A, 5_000_000, 1)
+    await cooldown_manager.clear("mines", A)
+    sid, state = await mines_game.start(A, 5_000, chat_id=-100_222)
+    safe_tiles = [t for t in range(36) if t not in state["mines"]]
+    with pytest.raises(game_engine.GameError, match="another chat"):
+        await mines_game.reveal(sid, A, safe_tiles[0], chat_id=-100_333)
+    with pytest.raises(game_engine.GameError, match="another chat"):
+        await mines_game.cashout(sid, A, chat_id=-100_333)
+
+    result = await mines_game.reveal(sid, A, safe_tiles[0], chat_id=-100_222)
+    assert result["game_over"] is False
+
+
+async def test_daily_reward_claim_and_cooldown():
+    await cooldown_manager.clear("daily", A)
+    result = await rewards.claim(A, "daily")
+    assert result["kind"] == "daily" and result["amount"] > 0
+    assert (await economy.get_balance(A))["wallet"] == result["amount"]
+    with pytest.raises(game_engine.GameCooldownError):
+        await rewards.claim(A, "daily")
+    await cooldown_manager.clear("daily", A)
+
+
+async def test_weekly_and_monthly_reward_distinct_cooldowns():
+    await cooldown_manager.clear("weekly", A)
+    await cooldown_manager.clear("monthly", A)
+    weekly = await rewards.claim(A, "weekly")
+    monthly = await rewards.claim(A, "monthly")
+    assert weekly["amount"] > 0 and monthly["amount"] > 0
+    assert (await economy.get_balance(A))["wallet"] == weekly["amount"] + monthly["amount"]
+    with pytest.raises(game_engine.GameCooldownError):
+        await rewards.claim(A, "weekly")
+    with pytest.raises(game_engine.GameCooldownError):
+        await rewards.claim(A, "monthly")
+    await cooldown_manager.clear("weekly", A)
+    await cooldown_manager.clear("monthly", A)
+
+
+async def test_rob_success_moves_bank_to_wallet(monkeypatch):
+    monkeypatch.setattr("random.random", lambda: 0.0)
+    await economy.admin_give(A, 1_000_000, 1)
+    await bank.deposit(A, 400_000)
+    await economy.admin_give(B, 200_000, 1)
+    await bank.deposit(B, 200_000)
+    await cooldown_manager.clear("rob", A)
+
+    result = await rob_service.attempt(A, B)
+    assert result["success"] is True
+    assert result["stolen"] == 20_000  # 10% of 200k
+    assert (await economy.get_balance(B))["bank"] == 180_000
+    assert (await economy.get_balance(A))["wallet"] == 600_000 + 20_000
+
+    with pytest.raises(game_engine.GameCooldownError):
+        await rob_service.attempt(A, B)
+    await cooldown_manager.clear("rob", A)
+
+
+async def test_rob_failure_stolen_zero(monkeypatch):
+    monkeypatch.setattr("random.random", lambda: 0.999)
+    await economy.admin_give(A, 1_000_000, 1)
+    await economy.admin_give(B, 200_000, 1)
+    await bank.deposit(B, 200_000)
+    await cooldown_manager.clear("rob", A)
+
+    before = (await economy.get_balance(A))["wallet"]
+    result = await rob_service.attempt(A, B)
+    assert result["success"] is False and result["stolen"] == 0
+    assert (await economy.get_balance(A))["wallet"] == before
+    assert (await economy.get_balance(B))["bank"] == 200_000
+    await cooldown_manager.clear("rob", A)
+
+
+async def test_rob_self_and_empty_bank_rejected():
+    await cooldown_manager.clear("rob", A)
+    with pytest.raises(rob_service.RobError):
+        await rob_service.attempt(A, A)
+    with pytest.raises(rob_service.RobError):
+        await rob_service.attempt(A, B)  # B has no bank
+    await cooldown_manager.clear("rob", A)
+
+
+async def test_rob_max_cap(monkeypatch):
+    monkeypatch.setattr("random.random", lambda: 0.0)
+    await economy.admin_give(A, 1_000_000, 1)
+    await bank.deposit(A, 500_000)
+    await economy.admin_give(B, 10_000_000, 1)
+    await bank.deposit(B, 10_000_000)
+    await cooldown_manager.clear("rob", A)
+
+    result = await rob_service.attempt(A, B)
+    assert result["success"] is True
+    assert result["stolen"] == 500_000  # capped at default maximum_amount
+    assert (await economy.get_balance(B))["bank"] == 9_500_000
+    await cooldown_manager.clear("rob", A)

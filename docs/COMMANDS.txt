@@ -1,0 +1,708 @@
+================================================================================
+ UNOITACHI BOT — COMPLETE COMMAND REFERENCE
+ (usage, explanation, limits and current defaults for every command)
+================================================================================
+
+GENERAL NOTES
+--------------------------------------------------------------------------------
+- Currency is shown as "₹ UN". Internally money is stored in integer sub-units
+  where 100 units = ₹1, so all amounts are whole numbers. Example: /pay @user 500
+  means 500 units = ₹5.00.
+- Every user is auto-created on first interaction. New users receive a
+  welcome grant of ₹500 (50,000 units) in their wallet (admin-configurable).
+- Most commands work in private chats, groups AND supergroups. Channels and
+  bots are ignored.
+- Reply-based target resolution: replying to a user's message is the most
+  reliable way to target them; otherwise you can pass @username or a numeric
+  Telegram user id.
+- All money movements produce an audit transaction with a unique #txid.
+  /transactions only shows your last 10 transfer (PAY) logs; other types
+  are still recorded in the database.
+
+PERMISSIONS
+--------------------------------------------------------------------------------
+Two ranks control the bot:
+  1. OWNER      — the numeric OWNER_ID set in .env. Full access to everything,
+                  and bypasses per-group "admin commands off" restrictions.
+  2. SUDO ADMIN — users added by the owner with /addsudo. Access to all admin
+                  commands except /addsudo and /rsudo.
+
+Permissions are ALWAYS resolved from numeric Telegram user ids, never
+usernames, so a username change cannot grant or revoke access.
+
+Group admins on Telegram (group admin rights) have NO special bot powers.
+
+--------------------------------------------------------------------------------
+PART 1 — USER COMMANDS (everyone)
+--------------------------------------------------------------------------------
+
+BASICS
+--------------------------------------------------------------------------------
+/start
+    Welcome message. Registers you in the economy if new (grants the ₹500
+    welcome balance). Private chat only.
+
+/help
+    Shows a short summary of user commands.
+
+ECONOMY
+--------------------------------------------------------------------------------
+/profile
+    Your full profile: name, user id, wallet, bank, net worth, stock value,
+    total earned, total spent, current leaderboard rank.
+
+/bal [@user | user_id]
+    Balance of wallet, bank and net worth. With no argument shows your own.
+    Reply to a user's message (with or without argument) to see their balance.
+    Example:  /bal
+              /bal @someone          /bal 123456789
+
+/pay @user amount | /pay user_id amount | reply to a user + /pay amount
+    Send money from YOUR WALLET to another user's wallet. Amount must be > 0
+    and you must have enough in your wallet. Target priority is:
+        reply-to user id  >  explicit numeric id  >  username lookup.
+    The receiver gets a private notification. Logs PAY transaction.
+    Example:  /pay @sangam 5000          (₹50.00)
+              /pay 123456789 5000
+              (reply to a message) /pay 5000
+
+/leader
+    Top-10 net-worth leaderboard (wallet + bank + live stock value).
+
+FREE REWARDS
+--------------------------------------------------------------------------------
+/daily     Claim free money. Default ₹500, cooldown 24h.
+/weekly    Claim free money. Default ₹3,000, cooldown 7 days.
+/monthly   Claim free money. Default ₹12,000, cooldown 30 days.
+
+    The three rewards have independent cooldowns — you can claim all three.
+    Amounts are set by admins via /setreward. While on cooldown you are told
+    how many seconds remain.
+
+DAILY INCOME
+--------------------------------------------------------------------------------
+/interestbank    Claim daily bank income (extra, on top of the automatic
+                 bank interest). Income builds up every 24h on your current
+                 bank balance.
+/interestasset   Claim daily asset income — every 24h on your current asset
+                 portfolio value.
+/stockinterest   Claim daily stock income — every 24h on your current stock
+                 portfolio value.
+
+    Income is never lost: if you do not claim, it keeps stacking day after
+    day. Claiming pays out EVERY unclaimed day at once and then starts a
+    fresh 24h window. Each source has its own clock, so you can claim all
+    three independently. Rates are configured by admins via /setincome.
+    Examples:
+        /interestbank   -> claims N days of bank income in one go
+        /interestasset  -> claims N days of asset income in one go
+        /stockinterest  -> claims N days of stock income in one go
+
+BANK
+--------------------------------------------------------------------------------
+/bank
+    Bank overview: your bank balance, wallet, interest rate, withdrawal tax,
+    and the size of the tax pool.
+
+/deposit amount
+    Move money wallet -> bank. Earns interest. Bank balance cannot be spent
+    on games/payments until withdrawn. Example: /deposit 10000 (₹100.00)
+
+/withdraw amount
+    Move money bank -> wallet. A withdrawal tax (default 5%) is charged and
+    goes into the tax pool, which is redistributed monthly to the Top-10
+    earners. Example: /withdraw 10000
+
+/transactions
+    Your last 10 TRANSFER logs — money sent to you or sent by you.
+    Sent transfers show "PAY →", received transfers show "PAY ←" with the
+    txid. All other types (deposits, game wins, rewards, ...) are not shown
+    here. Example:
+        PAY SENT → ₹20.00 · #a1b2c3d4e5
+        PAY RECEIVED ← ₹5.00 · #f6e7d8c9b0
+
+MARKET (stocks)
+--------------------------------------------------------------------------------
+Assets (with volatility): BTC Bitcoin, ETH Ethereum, RSX RS Index,
+SOL Solana, DOGE Dogecoin. Prices tick periodically on the configured
+volatility model. You can buy fractional amounts.
+
+/stocklist
+    Market overview: every asset, current price and 24h change.
+
+/stock SYMBOL
+    Asset detail: price, 24h high/low, volatility. Example: /stock BTC
+
+/buystock SYMBOL quantity
+    Buy fractional shares from your wallet. Example: /buystock BTC 0.01
+    Logs STOCK_BUY transaction.
+
+/sellstock SYMBOL quantity
+    Sell shares you own back to your wallet at current price.
+    Example: /sellstock BTC 0.005. Logs STOCK_SELL transaction.
+
+/portfolio
+    Your holdings, current value and total profit/loss.
+
+ASSET MARKET (user)
+-------------------------------------------------------------------------------
+Assets are a SECOND market, fully independent from stocks. Examples included
+on first run: LAPT (Luxury Apartment), M5 (BMW M5), GOLD (Gold Reserve,
+fractional), OIL (Crude Oil, fractional), BOND (Government Bond), DIAMOND
+(Rare Diamond). Prices tick on their own volatility schedule.
+
+/assets [page]
+    Asset market overview: every listed asset, price and 24h change.
+    Example: /assets 2
+
+/asset SYMBOL
+    Asset detail: category, price, 24h high/low, volatility, quantity rules,
+    description. Example: /asset GOLD
+
+/assetsinfo [SYMBOL]
+    With SYMBOL: full buy-decision info for one asset — current price, 24h
+    change/high/low, volatility, quantity rules, buy fee, market cap, holder
+    count, total quantity held, trade count, category and description — so you
+    can decide whether to buy. Example: /assetsinfo GOLD
+    Without SYMBOL: market statistics + the full asset list.
+    Example: /assetsinfo
+
+/buyasset SYMBOL quantity
+    Buy from the market. You are shown a confirmation with the current price
+    and a CONFIRM button; the price is re-checked server-side when you press
+    it (if it changed you must try again — you are never charged a stale
+    price). Logs ASSET_BUY. Example: /buyasset GOLD 0.5
+
+/sellasset SYMBOL quantity
+    Sell owned quantity back to the market at the current sell price.
+    Logs ASSET_SELL. Example: /sellasset GOLD 0.25
+
+/myassets
+    Your asset portfolio: each holding (quantity, unit cost, live value, P/L)
+    plus totals and overall P/L.
+
+/assetstats
+    Market statistics: total/active assets, total market value, trading
+    volume, gainers/losers/flat count.
+
+RESALE MARKET (user) — your own listings
+-------------------------------------------------------------------------------
+You can SELL assets you own to other users at any price you choose. Each
+listing gets its own unique LISTING ID (e.g. LST-1A2B3C4D) — it is never the
+asset's ID. Buyers buy the WHOLE listing (all of its quantity).
+
+/listasset SYMBOL quantity price
+    Create a listing offering quantity of SYMBOL at "price" per unit.
+    Your quantity is reserved in the listing (it stays in your holdings but
+    cannot be sold elsewhere until the listing closes). A configurable
+    listing fee (default 0) is charged. Logs the fee (if any).
+    Example: /listasset GOLD 0.5 82000
+
+/listings [SYMBOL] [page]
+    Browse the active resale market. Optionally filter by SYMBOL and paginate
+    with ◀ ▶ buttons. Example: /listings GOLD
+
+/buylisting LISTING_ID
+    Buy an entire listing. The money moves from your wallet to the seller's
+    wallet and the asset moves to your holdings atomically. Logs
+    ASSET_LISTING_BUY (buyer) and ASSET_LISTING_SALE (seller).
+    You cannot buy your own listing. Example: /buylisting LST-1A2B3C4D
+
+/mylistings
+    All your listings with their current status (active/pending/sold/cancelled).
+
+/cancellisting LISTING_ID
+    Cancel one of your ACTIVE listings; the quantity is released back to you.
+    Example: /cancellisting LST-1A2B3C4D
+
+/rmlisting LISTING_ID
+    Same as /cancellisting — remove one of YOUR OWN listings. You can only
+    remove listings you created; other users' listings are never touched.
+    Example: /rmlisting LST-1A2B3C4D
+
+GAMES
+--------------------------------------------------------------------------------
+All games require money in your WALLET (bet is locked atomically), and every
+game has a cooldown (default 60s). You can only have ONE active session per
+game. A failed bet only loses the bet; no money is ever duplicated.
+
+/fly low|medium|high amount
+    Plane game. Choose difficulty, bet an amount. Win probability and
+    multiplier depend on the difficulty (see /flyset table below).
+    Example: /fly high 1000
+
+/mines amount
+    Minesweeper-style 6x6 board with a configurable number of bombs (default
+    5). A bet is locked; reveal safe tiles to increase the payout multiplier,
+    or "cash out" early. Hit a bomb and you lose the bet. Sessions expire
+    after 5 minutes (default) and are settled as a loss. Played via an
+    inline keyboard (buttons). Example: /mines 2000
+
+/bet amount
+    Instant coin-flip bet with a fixed win probability and multiplier
+    (default 50% / 2.0x). Example: /bet 1000
+
+EMOJI GAMES (Telegram animated dice)
+--------------------------------------------------------------------------------
+Solo rounds use Telegram's real animated dice — the bot sends the emoji, waits
+one second, then edits the same message with the actual rolled result. Win
+rules and multipliers are admin-configurable per game (defaults below).
+
+Games / defaults:
+    🎳 ball      1-6, WIN when roll >= 5 (gte), multiplier 1.0x
+    🎯 arrow     1-6, WIN when roll == 6 (eq),  multiplier 1.5x
+    🏀 basketball 1-5, WIN when roll >= 4 (gte), multiplier 1.5x
+
+Single-player (bet locked at start, WIN = bet + bet*multiplier, LOSS = 0):
+    /sball amount
+    /sarrow amount
+    /sbasketball amount
+    Example: /sball 500
+
+Duels (1v1, 4-digit Game ID lobby):
+    /ball amount      -> creates a lobby with a 4-digit code
+    /arrow amount
+    /basketball amount
+    /join CODE        -> join the lobby; both players' bets are locked
+    The creator and joiner each roll the same emoji. Higher roll wins the pot
+    (2x the bet); equal rolls = DRAW and both bets are refunded (no money is
+    created). Lobbies expire after 5 minutes (default) and the creator's bet
+    is auto-refunded.
+    Example:
+        Player A: /ball 1000   -> Game ID: 4821
+        Player B: /join 4821   -> both roll; winner takes ₹2,000.
+
+Cooldowns are per game and per user; for a duel BOTH players must be off
+cooldown. You can only have ONE active emoji game at a time.
+
+BLACKJACK (USER VS BOT)
+--------------------------------------------------------------------------------
+/blackjack amount
+    Simple 2-card showdown vs the bot. No hit/stand/split/double/insurance.
+        Cards:  2-10 = face value, J/Q/K = 10, A = 11 (or 1 if it would bust).
+        Outcome: higher total wins; equal totals = DRAW and the bet returns.
+    WIN payout = bet + bet * multiplier (default 1.0x -> 2x). Example:
+    /blackjack 1000
+
+CRIME
+--------------------------------------------------------------------------------
+/rob @user | /rob user_id | reply to a user + /rob
+    Try to rob another user's BANK (not wallet). Uses the reply-based target
+    resolution. Outcome is random:
+        - success: you steal a percentage of the victim's bank, clamped to a
+          minimum/maximum (default 10%, min ₹1, max ₹5,000);
+        - fail:    the police catch you and you get nothing.
+    Either way the 60s cooldown applies. The victim is sent a private
+    notification. Robber and victim both get audit transactions (ROB/ROBBED).
+    Example:  /rob @sangam
+              (reply to a message) /rob
+    You cannot rob yourself, and the victim must have money in their bank.
+
+--------------------------------------------------------------------------------
+PART 2 — ADMIN COMMANDS (owner + sudo)
+--------------------------------------------------------------------------------
+
+Target resolution (for @user arguments everywhere):
+    reply-to message  >  @username  >  numeric user id.
+The target user must already have started the bot.
+
+PERMISSIONS (owner only — works in DM and groups)
+--------------------------------------------------------------------------------
+/addsudo @user | /addsudo user_id | reply to a user + /addsudo
+    Make a user a sudo admin. They get access to every admin command except
+    /addsudo and /rsudo.
+    In DM: target by @username or numeric user id.
+    In a group: reply to the user's message (or @username / numeric id).
+    Example:  /addsudo @sangam
+              /addsudo 123456789
+              (reply to a message) /addsudo
+
+/rsudo @user | /rsudo user_id | reply to a user + /rsudo
+    Remove a sudo admin (same target rules as /addsudo). The owner cannot be
+    removed.
+
+HELP
+--------------------------------------------------------------------------------
+/adminhelp
+    Shows this admin command reference inside Telegram.
+
+ECONOMY — MONEY
+--------------------------------------------------------------------------------
+/give @user amount
+    Add money to a user's wallet. Amount must be > 0. Counts toward the
+    user's total earned and monthly earnings (feeds the monthly ranking).
+    Logs ADMIN_GIVE. Example: /give @sangam 50000
+
+/remove @user amount
+    Take money from a user's wallet. Uses an atomic balance guard, so it can
+    never make a balance negative — fails with "Insufficient balance" if the
+    user cannot cover it. Logs ADMIN_REMOVE.
+
+/getcoin amount
+    Admin cheat: instantly credit YOUR OWN wallet with money. Logs an
+    ADMIN_GIVE transaction against you.
+    Example: /getcoin 100000   (₹1,000.00)
+
+BANK
+--------------------------------------------------------------------------------
+/setinterest rate
+    Bank interest percentage paid per 24 hours. Valid 0-100. Default 2%.
+    Example: /setinterest 3
+
+/settax rate
+    Withdrawal tax percentage. Valid 0-100. Default 5%. Tax is collected into
+    the pool, not destroyed, and redistributed monthly. Example: /settax 4
+
+/banksettings
+    Show current interest rate, withdrawal tax and tax pool size.
+
+/dtax
+    Manually distribute the CURRENT tax pool to the monthly Top-10 earners
+    using the configured rank percentages. Unlike the automatic month-end
+    job, a manual run does not mark the month as distributed, so the monthly
+    auto-distribution still runs. Every manual run is audited in the
+    tax_distributions collection under its own key.
+    Example: /dtax
+
+/addtax system rate
+    Set a transaction tax (percent) for one system. The tax is automatically
+    collected into the tax pool when that system's transactions happen.
+    Systems:
+        bank     - withdrawal tax (same as /settax)
+        assets   - asset buys and sells
+        stocks   - stock buys and sells
+        payments - /pay transfers (charged to the sender, on top of amount)
+        mines    - mines payouts
+        fly      - fly payouts
+        bet      - bet payouts
+    Rates are percent per transaction, valid 0-100. Default 0% (except bank
+    which defaults to 5%). Use /taxinfo to view all rates.
+    Examples:
+        /addtax assets 2        (2% on every asset buy/sell)
+        /addtax payments 1      (1% on every /pay, sender pays amount + 1%)
+        /addtax mines 5         (5% withheld from mines winnings)
+
+/taxinfo
+    Show the tax pool size and every per-system transaction tax rate.
+
+/track TRANSACTION_ID
+    Look up one transaction by its id and show the full audit record: id,
+    user, type, amount, balance before/after, metadata and timestamp.
+    Example: /track 3f2a1b4c9d8e7f6a
+
+/setincome bank|asset|stock rate
+    Daily income percentage per 24 hours for a claim source. Valid 0-100.
+    Defaults: bank 2%, asset 1%, stock 1%. The income is claimed by users
+    via /interestbank, /interestasset and /stockinterest.
+    Example: /setincome asset 1.5
+
+GAMES — FLY
+--------------------------------------------------------------------------------
+/flyset low|medium|high field value
+    Change ONE fly difficulty setting.
+    Fields:  min_mult | max_mult | risk | win_prob | cooldown | min_bet | max_bet
+    Validation:
+        min_mult/max_mult : 0 to 1000, and min_mult <= max_mult
+        risk              : percent, 0 to 100
+        win_prob          : 0.0 to 1.0
+        min_bet/max_bet   : >= 0, and min_bet <= max_bet
+        cooldown          : seconds, >= 0
+    Example: /flyset high win_prob 0.40
+
+    Current defaults per difficulty (cooldown 60s everywhere):
+        low     : min_mult 1.1, max_mult 1.6, risk 20%, win 75%, bet ₹1 - ₹1,000
+        medium  : min_mult 1.5, max_mult 2.5, risk 35%, win 55%, bet ₹1 - ₹2,500
+        high    : min_mult 2.0, max_mult 5.0, risk 50%, win 35%, bet ₹1 - ₹5,000
+
+/flytrap difficulty min_mult max_mult risk win_prob cooldown min_bet max_bet
+    Overwrite ALL settings of one difficulty in a single command (same
+    validation as /flyset).
+    Example: /flytrap high 2.0 6.0 0.5 0.30 60 100 600000
+
+GAMES — BET
+--------------------------------------------------------------------------------
+/betset win_prob multiplier min_bet max_bet [cooldown]
+    Configure the coin-flip game. win_prob is 0.0-1.0, multiplier 0-1000,
+    min_bet <= max_bet, cooldown in seconds (optional).
+    Defaults: win 0.5, multiplier 2.0, bet ₹1 - ₹1,000, cooldown 60s.
+
+GAMES — MINES
+--------------------------------------------------------------------------------
+/minestrap bombs min_reveals min_bet max_bet cooldown duration
+    Mines tuning. Board is 6x6 = 36 tiles.
+        bombs        : 1 to 34
+        min_reveals  : 1 to (36 - bombs)
+        min_bet/max_bet : >= 0, min_bet <= max_bet
+        cooldown     : seconds >= 0
+        duration     : seconds >= 30 (session expiry = auto-loss)
+    Defaults: 5 bombs, 3 min reveals, bet ₹1 - ₹2,000, cooldown 60s,
+    duration 300s (5 minutes).
+
+/minestrap multipliers 1.0,1.2,...
+    Set a custom payout table (comma separated, up to 17 entries — one per
+    reveal; the first entry is the 1st-reveal multiplier).
+
+/minestrap multipliers auto
+    Restore the built-in payout table:
+    1.0, 1.18, 1.4, 1.66, 2.0, 2.45, 3.0, 3.8, 4.9, 6.5, 9.0, 13.0, 19.0,
+    30.0, 50.0, 85.0, 150.0
+
+GAMES — ROB (crime tuning)
+--------------------------------------------------------------------------------
+/robset field value
+    Configure /rob. Fields and defaults:
+        win_prob  : 0.0-1.0 (default 0.50)  chance the heist succeeds
+        percent   : 0-100   (default 10%)   share of victim's bank stolen
+        min       : >= 0    (default ₹1)    minimum stolen amount
+        max       : >= 0    (default ₹5,000) maximum stolen amount (min <= max)
+        cooldown  : seconds (default 60)
+    Example: /robset win_prob 0.60
+
+GAMES — EMOJI
+--------------------------------------------------------------------------------
+/emojiset GAME field value
+    Set one config field for an emoji game (GAME = ball | arrow | basketball).
+    Fields and defaults:
+        enabled     : on/off            (default on)
+        single      : on/off            (default on)  solo rounds allowed
+        duel        : on/off            (default on)  duels allowed
+        cooldown    : seconds >= 0      (default 60)
+        min_bet     : >= 0              (default ₹1)
+        max_bet     : >= 0 (>= min)     (default ₹1,000)
+        multiplier  : 0 to 1000         (default ball 1.0, arrow/basketball 1.5)
+        rule        : gte | eq          (default ball gte, arrow eq, basketball gte)
+        target      : within dice range (default ball 5, arrow 6, basketball 4)
+        expiry      : seconds >= 0      (default 300) duel lobby lifetime
+    Example: /emojiset ball multiplier 2
+
+/emojitrap GAME key=value key=value ...
+    Bulk-set multiple fields at once (same fields as /emojiset).
+    Example: /emojitrap arrow rule=eq target=6 multiplier=2 cooldown=30
+
+/emojigameinfo GAME
+    Show the current configuration for one emoji game.
+
+/emojigames
+    Overview of all emoji games (enabled state, bet ranges, cooldown).
+
+GAMES — BLACKJACK
+--------------------------------------------------------------------------------
+/bjset field value | /bjset key=value ...
+    Configure /blackjack. Fields and defaults:
+        enabled     : on/off    (default on)
+        cooldown    : seconds   (default 60)
+        min_bet     : >= 0      (default ₹1)
+        max_bet     : >= 0      (default ₹1,000)
+        multiplier  : 0 to 1000 (default 1.0 -> 2x on a win)
+    Example: /bjset multiplier 1.5
+
+/bjinfo
+    Show the current blackjack configuration.
+
+MARKET
+--------------------------------------------------------------------------------
+/addstock SYMBOL name base_price volatility
+    List a NEW asset on the market (or re-list one that was removed).
+        SYMBOL    : letters/numbers only, shown in UPPERCASE
+        name      : display name (may contain spaces, put it right after SYMBOL)
+        base_price: opening price, must be > 0
+        volatility: random-walk strength, must be between 0 and 1
+    The price starts at base_price and is ticked by the scheduler like every
+    other asset. Re-listing an inactive symbol restores it.
+    Example: /addstock ADA Cardano 45000 0.02
+
+/rmstock SYMBOL
+    Delist an asset from the market. Buying, selling and price ticks stop for
+    it immediately. Existing holdings are kept but can no longer be traded.
+    Example: /rmstock DOGE
+
+ASSET MARKET (admin)
+-------------------------------------------------------------------------------
+Categories: REAL_ESTATE | VEHICLE | BUSINESS | GOLD | BOND | COMMODITY |
+LUXURY | COLLECTIBLE | DIGITAL | OTHER.
+
+/addasset SYMBOL name CATEGORY base_price volatility
+    List a NEW asset on the market.
+        SYMBOL     : letters/numbers only, shown in UPPERCASE (1-10 chars)
+        name       : display name (may contain spaces)
+        CATEGORY   : one of the categories above
+        base_price : opening price, must be > 0
+        volatility : random-walk strength, 0 to 1
+    The asset gets a unique Asset ID (AST-XXXXXXXX) and is ticked by the
+    scheduler. Logs ADD_ASSET.
+    Example: /addasset VILA Grand Villa REAL_ESTATE 20000000 0.015
+    Optional per-asset rules: /editasset SYMBOL allow_fractional true,
+    min_quantity, max_quantity, quantity_step.
+
+/editasset SYMBOL field value
+    Edit ONE editable field of an asset.
+    Fields: name, description, category, emoji, base_price, price,
+    volatility, min_quantity, max_quantity, quantity_step, allow_fractional,
+    is_tradeable, is_active.
+    Setting base_price also resets the current price. Setting price updates
+    change/change_percent and writes a price-history point. Logs EDIT_ASSET.
+    Example: /editasset VILA name 'Grand Luxury Villa'
+
+/assetset SYMBOL field value
+    Same as /editasset but logged as ASSET_CONFIG_CHANGE (use it for
+    operational tweaks like allow_fractional / is_tradeable).
+
+/assetprice SYMBOL price
+    Manually set an asset's current price. Recomputes change/change_percent
+    and writes a price-history point. Logs MANUAL_PRICE_CHANGE.
+    Example: /assetprice GOLD 82000
+
+/assetvolatility SYMBOL value
+    Set an asset's volatility (0 to 1). Logs VOLATILITY_CHANGE.
+    Example: /assetvolatility GOLD 0.02
+
+/rmasset SYMBOL
+    Delist an asset. Trading and price ticks stop; existing holders keep
+    their holdings but can no longer trade them. Logs REMOVE_ASSET.
+
+/restoreasset SYMBOL
+    Re-list a previously delisted asset (keeps its price history).
+    Logs RESTORE_ASSET.
+
+/assetinfo SYMBOL
+    Full asset detail (works for delisted assets too, shows a DELISTED flag).
+
+/assetlist [page]
+    All assets with price and category (20 per page). Pass "all" as the first
+    argument to include delisted assets.
+
+/assetsearch query
+    Search assets by symbol, name or category.
+    Example: /assetsearch gold
+
+/assetowners SYMBOL [page]
+    Top holders of an asset by current value: username/id, quantity, value.
+
+/assetadminstats
+    Admin market stats: active/total/delisted, holders, holdings, total
+    value, total invested, total P/L, trading volume, top assets by value,
+    most-held assets.
+
+LISTING MARKET (admin)
+-------------------------------------------------------------------------------
+/listinginfo LISTING_ID
+    Full listing report: seller, buyer, status, quantity, unit price, total.
+    Example: /listinginfo LST-1A2B3C4D
+
+/forcelisting LISTING_ID
+    Force-cancel a listing (active or pending), even if it belongs to another
+    user. Logs RM_LISTING in the asset audit log.
+    (Note: the user-facing /rmlisting is a DIFFERENT command — it lets a user
+    remove only their own listing.)
+    Example: /forcelisting LST-1A2B3C4D
+
+FREE REWARDS
+--------------------------------------------------------------------------------
+/setreward daily|weekly|monthly amount
+    Set the free-currency claim amount for a reward. Amount must be > 0.
+    Cooldowns are fixed to the reward name (daily = 24h, weekly = 7 days,
+    monthly = 30 days).
+    Defaults: daily ₹500, weekly ₹3,000, monthly ₹12,000.
+    Example: /setreward daily 75000   (₹750)
+
+PROMO CODES
+--------------------------------------------------------------------------------
+Promo codes let admins give away currency, stocks and assets. Users redeem a
+promo by simply TYPING the code as a normal text message in DM, groups or
+supergroups — there is no /redeem command. Detection runs automatically; the
+code must appear as a 3-20 letter/number token in the message.
+
+/addpromo CODE EXPIRY LIMIT REWARD [REWARD...]
+    Create a promo code. Owner/sudo only.
+    CODE:    3-20 letters/numbers (case-insensitive, non-alphanumerics ignored).
+    EXPIRY:  lifetime/unlimited/forever, or a number + min/hr/day/week/month/
+             year, e.g. 10min, 2hr, 7days, 30days, 1week, 2months.
+    LIMIT:   total redemption limit, or 'unlimited'.
+    REWARD:  one or more tokens, one per reward:
+                 rs:AMOUNT            currency, e.g. rs:500 = ₹500
+                 stock:SYMBOL:QTY     stock holdings, e.g. stock:BTC:0.01
+                 asset:ASSET_ID:QTY   asset holdings, e.g. asset:AST-00021:1
+    Every user can redeem a promo at most once (per-user limit is always 1).
+    Examples:
+        /addpromo ITACHI500 7days 100 rs:500
+        /addpromo MEGA 30days 500 rs:100 stock:BTC:0.01 asset:AST-00021:1
+        /addpromo VIP lifetime unlimited rs:500 stock:BTC:0.1 asset:AST-00021:2
+
+/rmpromo CODE
+    Disable a promo. Redemption history is kept; the code stops working.
+
+/editpromo CODE FIELD VALUE [VALUE...]
+    Edit an existing promo without touching redemption history.
+    Fields:
+        expiry VALUE     new expiry, e.g. 7days or lifetime
+        limit VALUE      new total limit, e.g. 50 or unlimited
+        active on|off    enable/disable the promo
+        reward TOKENS    replace the whole reward bundle
+    Example: /editpromo ITACHI500 limit 500
+             /editpromo ITACHI500 reward rs:1000 stock:BTC:0.02
+
+/promoinfo CODE
+    Promo details: status, expiry (with time left), uses, per-user limit and
+    the reward bundle.
+
+/promolist [status] [page]
+    List promos newest first. status: active (default view filters with 'all'
+    accepted too), expired, inactive, or all. 10 per page.
+
+/promostats CODE
+    Redemption statistics: total redemptions, unique users, remaining uses,
+    totals given per reward type and the last redemption time.
+
+    Expired promos are deactivated automatically every minute.
+
+USERS
+--------------------------------------------------------------------------------
+/freeze @user
+    Freeze a user. They keep their money but cannot spend it (games, pay,
+    rob, withdraw are blocked). Their balance stays intact.
+
+/unfreeze @user
+    Remove a freeze.
+
+/ban @user
+    Full economy ban: the user cannot use any economy command at all.
+    You cannot ban yourself.
+
+/unban @user
+    Remove a ban.
+
+/userinfo @user
+    Full account report: wallet, bank, net worth, total earned/spent,
+    monthly rank, transaction count, and BANNED/FROZEN badges.
+
+STATS
+--------------------------------------------------------------------------------
+/econstats
+    Economy-wide stats: user count, total money in circulation, total banked,
+    tax pool size, total transactions, number of active stock assets.
+
+GROUP CONFIGURATION
+--------------------------------------------------------------------------------
+/setchat [setting] [on|off]          (inside a group)
+/setchat chat_id [setting] [on|off]  (from DM)
+/setchat chat_id                     (view a chat's config from DM)
+/setchat                             (view current group config from inside)
+
+    Per-group feature toggles. Stored centrally in MongoDB; defaults are all
+    ON. Settings:
+        group        — enable/disable the whole bot in that chat
+        economy      — economy commands (/bal /pay /profile /bank /stock etc.)
+        games        — /fly /mines /bet
+        leaderboard  — /leader
+        admin        — admin commands (owner bypasses this toggle)
+
+    When a feature is OFF the bot stays silent (or shows a short notice)
+    for those commands in that group only.
+    Examples:
+        /setchat games off                      (in the group)
+        /setchat -1001234567890 economy off     (from DM)
+        /setchat -1001234567890                 (view from DM)
+
+================================================================================
+END OF COMMAND REFERENCE
+================================================================================
