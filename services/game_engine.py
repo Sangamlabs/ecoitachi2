@@ -28,7 +28,7 @@ from utils.money import MoneyError
 
 logger = logging.getLogger(__name__)
 
-GAMES = ("fly", "mines", "bet")
+GAMES = ("fly", "mines", "bet", "coinflip", "roulette", "satta", "color", "hilo")
 
 
 class GameError(Exception):
@@ -58,6 +58,8 @@ async def validate_game_input(game: str) -> dict[str, Any]:
 
 
 async def get_game_cooldown(game: str) -> int:
+    if game == "color":
+        return 0
     settings = await validate_game_input(game)
     cooldown = settings.get("cooldown")
     if cooldown is None:

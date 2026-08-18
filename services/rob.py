@@ -55,7 +55,11 @@ async def attempt(robber_id: int, target_id: int) -> dict[str, Any]:
         raise RobError("They have nothing in their bank to rob.")
 
     probability = float(cfg.get("success_probability", 0.5))
-    success = random.random() < probability
+    from services import armory as armory_service
+    atk_buff, _ = await armory_service.get_rob_buffs(robber_id)
+    _, def_buff = await armory_service.get_rob_buffs(target_id)
+    net_prob = min(0.95, max(0.05, probability + atk_buff - def_buff))
+    success = random.random() < net_prob
 
     stolen = 0
     if success:

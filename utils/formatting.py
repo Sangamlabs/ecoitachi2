@@ -35,3 +35,19 @@ def format_datetime(ts: int) -> str:
 
 def pluralize(count: int, singular: str, plural: str | None = None) -> str:
     return singular if count == 1 else (plural or singular + "s")
+
+
+_AESTHETIC_MAP: dict[str, str] = {
+    "A": "𝐀", "B": "𝐁", "C": "𝐂", "D": "𝐃", "E": "𝐄", "F": "𝐅", "G": "𝐆", "H": "𝐇", "I": "𝐈", "J": "𝐉",
+    "K": "𝐊", "L": "𝐋", "M": "𝐌", "N": "𝐍", "O": "𝐎", "P": "𝐏", "Q": "𝐐", "R": "𝐑", "S": "𝐒", "T": "𝐓",
+    "U": "𝐔", "V": "𝐕", "W": "𝐖", "X": "𝐗", "Y": "𝐘", "Z": "𝐙",
+    "a": "ᴧ", "b": "ʙ", "c": "ᴄ", "d": "ᴅ", "e": "є", "f": "ꜰ", "g": "ɢ", "h": "ʜ", "i": "ɪ", "j": "ᴊ",
+    "k": "ᴋ", "l": "ʟ", "m": "ϻ", "n": "η", "o": "σ", "p": "ᴘ", "q": "ǫ", "r": "ʀ", "s": "s", "t": "ᴛ",
+    "u": "ᴜ", "v": "ᴠ", "w": "ᴡ", "x": "x", "y": "ʏ", "z": "ᴢ",
+}
+
+
+def font_style(text: str) -> str:
+    """Transform text into aesthetic unicode typography (e.g. 𝐁σᴛ ʜᴧs ʙєєη σᴘᴛɪϻɪsєᴅ ᴡєʟʟ)."""
+    return "".join(_AESTHETIC_MAP.get(c, c) for c in text)
+

@@ -53,7 +53,7 @@ def test_profile_escapes_username():
 def test_balance_safe_html():
     user = {"user_id": 1, "username": "user", "wallet": 100, "bank": 200}
     text = balance(user, user)
-    assert "<b>💰 BALANCE</b>" in text
+    assert "<b>💰 𝐁ᴧʟᴧηᴄє 𝐒ᴜϻϻᴧʀʏ</b>" in text
     _assert_safe_html(text)
 
 

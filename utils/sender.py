@@ -74,9 +74,11 @@ async def edit_html(
         return None
 
 
-async def answer_callback(client: Client, callback_query, text: str, show_alert: bool = False) -> None:
+async def answer_callback(
+    client: Client, callback_query, text: str = "", show_alert: bool = False, alert: bool = False
+) -> None:
     try:
-        await callback_query.answer(text, show_alert=show_alert)
+        await callback_query.answer(text=text, show_alert=show_alert or alert)
     except Exception as exc:
         logger.warning("callback answer failed: %s", exc)
 

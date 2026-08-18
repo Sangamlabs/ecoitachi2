@@ -15,10 +15,10 @@ import time
 from html import escape
 from typing import Any
 
-from utils.formatting import tg_link
+from utils.formatting import font_style, tg_link
 from utils.money import format_money
 
-CMD = "💰 UNOITACHI"
+CMD = font_style("Uno Itachi Economy")
 OWNER_EMOJI = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 
@@ -52,87 +52,24 @@ def start(user: dict[str, Any]) -> str:
     name = _user_name(user)
     return (
         f"<b>💰 {CMD}</b>\n\n"
-        f"Welcome, <b>{name}</b>! You have joined the UNOITACHI economy.\n\n"
-        f"<blockquote>"
-        f"💵 Work the market, bank your earnings and grow your net worth.\n"
-        f"🎁 Claim free currency with <code>/daily</code>, <code>/weekly</code> and "
-        f"<code>/monthly</code>.\n"
-        f"Use <code>/help</code> to see everything you can do."
-        f"</blockquote>"
-    )
-
-
-def help_text() -> str:
-    return (
-        f"<b>📖 {CMD} — HELP</b>\n\n"
-        f"<b>👤 Economy</b>\n"
-        f"<code>/profile</code> — your profile\n"
-        f"<code>/bal</code> — check balance\n"
-        f"<code>/pay @user amount</code> — send money\n"
-        f"<code>/leader</code> — leaderboard\n\n"
-        f"<b>🏦 Bank</b>\n"
-        f"<code>/deposit amount</code> — wallet → bank\n"
-        f"<code>/withdraw amount</code> — bank → wallet (tax applies)\n"
-        f"<code>/bank</code> — bank info & interest\n"
-        f"<code>/transactions</code> — last 10 transfers (sent & received)\n\n"
-        f"<b>💰 Daily Income</b>\n"
-        f"<code>/interestbank</code> — claim daily bank income\n"
-        f"<code>/interestasset</code> — claim daily asset income\n"
-        f"<code>/stockinterest</code> — claim daily stock income\n"
-        f"<i>Income builds up every 24h; claim any time to collect all of it.</i>\n\n"
-        f"<b>📈 Stock Market</b>\n"
-        f"<code>/stocklist</code> — market overview\n"
-        f"<code>/stock SYMBOL</code> — asset details\n"
-        f"<code>/buystock SYMBOL qty</code> — buy\n"
-        f"<code>/sellstock SYMBOL qty</code> — sell\n"
-        f"<code>/portfolio</code> — your holdings\n\n"
-        f"<b>🏠 Asset Market</b>\n"
-        f"<code>/assets</code> — asset market overview\n"
-        f"<code>/asset SYMBOL</code> — asset details\n"
-        f"<code>/assetsinfo [SYMBOL]</code> — market stats / buy-decision info\n"
-        f"<code>/buyasset SYMBOL qty</code> — buy (with confirm)\n"
-        f"<code>/sellasset SYMBOL qty</code> — sell\n"
-        f"<code>/myassets</code> — your asset portfolio\n"
-        f"<code>/assetstats</code> — market statistics\n\n"
-        f"<b>🛒 Resale Market</b>\n"
-        f"<code>/listasset SYMBOL qty price</code> — list your asset for sale\n"
-        f"<code>/listings</code> — browse user listings\n"
-        f"<code>/buylisting ID</code> — buy a listing\n"
-        f"<code>/mylistings</code> — your listings\n"
-        f"<code>/cancellisting ID</code> / <code>/rmlisting ID</code> — remove your own listing\n\n"
-        f"<b>🎮 Games</b>\n"
-        f"<code>/fly low|medium|high amount</code>\n"
-        f"<code>/mines amount</code> — 6x6 mines board\n"
-        f"<code>/bet amount</code> — coin bet\n"
-        f"<code>/rob @user</code> — steal from a user's bank\n\n"
-        f"<b>🎳 Emoji Games</b>\n"
-        f"<code>/sball amount</code> — solo bowling\n"
-        f"<code>/sarrow amount</code> — solo darts\n"
-        f"<code>/sbasketball amount</code> — solo hoops\n"
-        f"<code>/ball amount</code> / <code>/arrow amount</code> / <code>/basketball amount</code> — start a 1v1 duel\n"
-        f"<code>/join CODE</code> — join a duel with its 4-digit code\n"
-        f"<code>/blackjack amount</code> — USER VS BOT, 2 cards each\n\n"
-        f"<b>🎁 Free Rewards</b>\n"
-        f"<code>/daily</code> — free currency every 24h\n"
-        f"<code>/weekly</code> — free currency every 7 days\n"
-        f"<code>/monthly</code> — free currency every 30 days\n\n"
-        f"<b>🎁 Promo Codes</b>\n"
-        f"Promo codes are redeemed automatically — just type an active code as a "
-        f"normal message in DM or a group and the rewards are added instantly.\n\n"
-        f"<i>Every game and /rob has a 60s cooldown. Bet within your wallet balance. "
-        f"Unclaimed duel lobbies expire and refund the creator.</i>"
+        f"<blockquote>Welcome, <b>{name}</b>! You have joined the economy system.</blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Market & Banking')}:</b> Work, trade assets, invest in stocks and bank earnings.\n"
+        f"🎁 <b>{font_style('Free Currency')}:</b> Claim <code>/daily</code>, <code>/weekly</code>, <code>/monthly</code>.</blockquote>\n"
+        f"<blockquote>💡 <i>Use <code>/help</code> to explore all games and commands.</i></blockquote>"
     )
 
 
 def balance(user: dict[str, Any], target: dict[str, Any]) -> str:
     name = _link(target["user_id"], _user_name(target))
     net = user.get("wallet", 0) + user.get("bank", 0)
+    title = font_style("Balance Summary")
     return (
-        f"<b>💰 BALANCE</b>\n"
-        f"<blockquote>👤 User: {name}\n"
-        f"💵 Wallet: {format_money(user.get('wallet', 0))}\n"
-        f"🏦 Bank: {format_money(user.get('bank', 0))}\n"
-        f"💎 Net Worth: {format_money(net)}</blockquote>"
+        f"<b>💰 {title}</b>\n"
+        f"<blockquote>👤 <b>{font_style('User')}:</b> {name}\n"
+        f"🆔 <b>{font_style('ID')}:</b> <code>{target['user_id']}</code></blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Wallet')}:</b> {format_money(user.get('wallet', 0))}\n"
+        f"🏦 <b>{font_style('Bank')}:</b> {format_money(user.get('bank', 0))}</blockquote>\n"
+        f"<blockquote>💎 <b>{font_style('Net Worth')}:</b> <b>{format_money(net)}</b></blockquote>"
     )
 
 
@@ -143,53 +80,57 @@ def profile(user: dict[str, Any]) -> str:
     net = user.get("wallet", 0) + user.get("bank", 0) + stocks_value + asset_value
     name = _user_name(user)
     if user.get("username"):
-        ident_line = f"🆔 <b>Username:</b> @{escape(user['username'])}"
+        ident_line = f"🆔 <b>{font_style('Username')}:</b> @{escape(user['username'])}"
     else:
-        ident_line = f"🆔 <b>User ID:</b> <code>{user['user_id']}</code>"
+        ident_line = f"🆔 <b>{font_style('User ID')}:</b> <code>{user['user_id']}</code>"
     return (
-        f"<b>👤 PROFILE</b>\n"
-        f"<blockquote>"
-        f"👤 <b>Name:</b> {name}\n"
-        f"{ident_line}\n"
-        f"🆔 <b>User ID:</b> <code>{user['user_id']}</code>\n"
-        f"💵 <b>Wallet:</b> {format_money(user.get('wallet', 0))}\n"
-        f"🏦 <b>Bank:</b> {format_money(user.get('bank', 0))}\n"
-        f"💎 <b>Net Worth:</b> {format_money(net)}\n"
-        f"📈 <b>Stocks Value:</b> {format_money(stocks_value)}\n"
-        f"🏠 <b>Asset Value:</b> {format_money(asset_value)}\n"
-        f"💸 <b>Total Earned:</b> {format_money(user.get('total_earned', 0))}\n"
-        f"💳 <b>Total Spent:</b> {format_money(user.get('total_spent', 0))}\n"
-        f"🏆 <b>Leaderboard Rank:</b> {rank}"
-        f"</blockquote>"
+        f"<b>👤 {font_style('User Profile')}</b>\n"
+        f"<blockquote>👤 <b>{font_style('Name')}:</b> {name}\n"
+        f"{ident_line}</blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Wallet')}:</b> {format_money(user.get('wallet', 0))}\n"
+        f"🏦 <b>{font_style('Bank')}:</b> {format_money(user.get('bank', 0))}\n"
+        f"💎 <b>{font_style('Net Worth')}:</b> <b>{format_money(net)}</b></blockquote>\n"
+        f"<blockquote>📈 <b>{font_style('Stocks')}:</b> {format_money(stocks_value)}\n"
+        f"🏠 <b>{font_style('Assets')}:</b> {format_money(asset_value)}\n"
+        f"🏆 <b>{font_style('Rank')}:</b> <b>{rank}</b></blockquote>"
     )
 
 
 def payment(sender: dict[str, Any], receiver: dict[str, Any], amount: int, tx_id: str) -> str:
     return (
-        f"<b>✅ PAYMENT SENT</b>\n"
-        f"<blockquote>"
-        f"👤 To: {_link(receiver['user_id'], _user_name(receiver))}\n"
-        f"💵 Amount: <b>{format_money(amount)}</b>\n"
-        f"🧾 <code>#{tx_id}</code>"
-        f"</blockquote>"
+        f"<b>💸 {font_style('Payment Sent')}</b>\n"
+        f"<blockquote>👤 <b>{font_style('Recipient')}:</b> {_link(receiver['user_id'], _user_name(receiver))}\n"
+        f"💵 <b>{font_style('Amount')}:</b> <b>{format_money(amount)}</b></blockquote>\n"
+        f"<blockquote>🧾 <b>{font_style('Transaction')}:</b> <code>#{tx_id}</code></blockquote>"
     )
 
 
 def payment_received(sender: dict[str, Any], amount: int) -> str:
     return (
-        f"<b>💸 PAYMENT RECEIVED</b>\n"
-        f"{_link(sender['user_id'], _user_name(sender))} sent you "
-        f"<b>{format_money(amount)}</b>."
+        f"<b>💸 {font_style('Payment Received')}</b>\n"
+        f"<blockquote>👤 {_link(sender['user_id'], _user_name(sender))} sent you <b>{format_money(amount)}</b>.</blockquote>"
     )
 
 
 def leaderboard(entries: list[tuple[int, str, int]]) -> str:
-    lines = ["<b>🏆 UNOITACHI LEADERBOARD</b>", ""]
+    title = font_style("Richest Leaderboard")
+    top_block: list[str] = []
+    rest_block: list[str] = []
     for idx, (user_id, name, net_worth) in enumerate(entries, start=1):
         medal = OWNER_EMOJI.get(idx, "")
-        prefix = f"{medal} " if medal else f"<code>{idx}</code>. "
-        lines.append(f"{prefix}{_link(user_id, escape(name))} — <b>{format_money(net_worth)}</b>")
-    return "\n".join(lines)
+        prefix = f"{medal} " if medal else f"<code>{idx:02d}</code>. "
+        line = f"{prefix}{_link(user_id, escape(name))} — <b>{format_money(net_worth)}</b>"
+        if idx <= 3:
+            top_block.append(line)
+        else:
+            rest_block.append(line)
+
+    res = [f"<b>🏆 {title}</b>"]
+    if top_block:
+        res.append("<blockquote>" + "\n".join(top_block) + "</blockquote>")
+    if rest_block:
+        res.append("<blockquote>" + "\n".join(rest_block) + "</blockquote>")
+    return "\n".join(res)
 
 
 def bank(user: dict[str, Any], settings: dict[str, Any], tax_pool: int) -> str:
@@ -197,15 +138,56 @@ def bank(user: dict[str, Any], settings: dict[str, Any], tax_pool: int) -> str:
     interval = settings.get("interest_interval_hours", 24)
     tax = settings.get("withdrawal_tax_rate", 5.0)
     return (
-        f"<b>🏦 BANK</b>\n"
-        f"<blockquote>"
-        f"💵 Bank Balance: {format_money(user.get('bank', 0))}\n"
-        f"💰 Wallet: {format_money(user.get('wallet', 0))}\n"
-        f"📈 Interest: <b>{rate}%</b> per {interval}h\n"
-        f"🧾 Withdrawal Tax: <b>{tax}%</b>\n"
-        f"🏛️ Tax Pool: {format_money(tax_pool)}"
-        f"</blockquote>\n"
-        f"<i>Use <code>/deposit</code> and <code>/withdraw</code> to move money.</i>"
+        f"<b>🏦 {font_style('Central Bank')}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Bank Balance')}:</b> {format_money(user.get('bank', 0))}\n"
+        f"💰 <b>{font_style('Wallet')}:</b> {format_money(user.get('wallet', 0))}</blockquote>\n"
+        f"<blockquote>📈 <b>{font_style('Interest Rate')}:</b> <b>{rate}%</b> / {interval}h\n"
+        f"🧾 <b>{font_style('Withdrawal Tax')}:</b> <b>{tax}%</b>\n"
+        f"🏛️ <b>{font_style('Tax Pool')}:</b> {format_money(tax_pool)}</blockquote>\n"
+        f"<blockquote><i>💡 Use <code>/deposit</code> and <code>/withdraw</code> to manage funds.</i></blockquote>"
+    )
+
+
+def help_text() -> str:
+    return (
+        f"<b>📖 {CMD} — {font_style('Help & Commands Manual')}</b>\n\n"
+        f"<blockquote>👤 <b>{font_style('Economy & Profile')}</b>\n"
+        f"• <code>/bal</code> [user] — wallet & bank balance\n"
+        f"• <code>/networth</code> (or <code>/nw</code>) — net worth breakdown\n"
+        f"• <code>/pay @user amount</code> — send money (accepts <code>500k</code>, <code>1.5M</code>)\n"
+        f"• <code>/rich</code> (or <code>/top</code>) — top richest tycoons\n"
+        f"• <code>/profile</code> — full financial identity</blockquote>\n\n"
+        f"<blockquote>🏦 <b>{font_style('Central Banking & Loans')}</b>\n"
+        f"• <code>/deposit amount</code> — wallet → bank\n"
+        f"• <code>/withdraw amount</code> — bank → wallet (tax applies)\n"
+        f"• <code>/bank</code> — central bank status & interest\n"
+        f"• <code>/loan [amount]</code> — borrow money from central bank\n"
+        f"• <code>/repay [amount]</code> — repay your active loan\n"
+        f"• <code>/interestbank</code> / <code>/interestasset</code> / <code>/stockinterest</code> — claim 24h yields\n"
+        f"• <code>/transactions</code> — last 10 transaction receipts</blockquote>\n\n"
+        f"<blockquote>🎮 <b>{font_style('Casino & Gambling')}</b>\n"
+        f"• <code>/color big|small|red|green|0-9 amount</code> — Color Trading (up to 9x)\n"
+        f"• <code>/satta [bet] [amount]</code> — Indian Satta Matka (up to 90x jackpot!)\n"
+        f"• <code>/cf heads|tails amount</code> — coin flip (2x payout)\n"
+        f"• <code>/roul red|black|green|0-36 amount</code> — roulette (up to 36x)\n"
+        f"• <code>/mines amount</code> — minesweeper cash-out board\n"
+        f"• <code>/fly low|medium|high amount</code> — crash rocket game\n"
+        f"• <code>/bet amount</code> — 50/50 dice gamble\n"
+        f"• <code>/blackjack amount</code> — card table vs bot dealer\n"
+        f"• <code>/rob @user</code> — stealth robbery attempt</blockquote>\n\n"
+        f"<blockquote>🎳 <b>{font_style('Emoji Duel Arenas')}</b>\n"
+        f"• <code>/sball</code> / <code>/sarrow</code> / <code>/sbasketball</code> amount — solo emoji games\n"
+        f"• <code>/ball</code> / <code>/arrow</code> / <code>/basketball</code> amount — 1v1 PvP duel\n"
+        f"• <code>/join CODE</code> — join open duel lobby</blockquote>\n\n"
+        f"<blockquote>📈 <b>{font_style('Markets & Armory')}</b>\n"
+        f"• <code>/guns</code> (or <code>/armory</code>) — black market gun store\n"
+        f"• <code>/myguns</code> (or <code>/arsenal</code>) — view your equipped weapons\n"
+        f"• <code>/stocklist</code> / <code>/portfolio</code> / <code>/buystock</code> / <code>/sellstock</code>\n"
+        f"• <code>/assets</code> / <code>/myassets</code> / <code>/buyasset</code> / <code>/sellasset</code>\n"
+        f"• <code>/listings</code> / <code>/listasset</code> / <code>/buylisting</code></blockquote>\n\n"
+        f"<blockquote>🎁 <b>{font_style('Daily Rewards & Free Grants')}</b>\n"
+        f"• <code>/daily</code> / <code>/weekly</code> / <code>/monthly</code> — free claims\n"
+        f"💡 <i>Tip: You can use short amounts like <code>100k</code>, <code>2.5m</code>, <code>1b</code>, <code>1t</code>!</i></blockquote>"
     )
 
 
@@ -217,28 +199,26 @@ def income_claim(source: str, result: dict[str, Any]) -> str:
         "stock": "📈",
     }.get(source, "💰")
     labels = {
-        "bank": "BANK INTEREST",
-        "asset": "ASSET INCOME",
-        "stock": "STOCK INTEREST",
+        "bank": font_style("Bank Daily Interest"),
+        "asset": font_style("Asset Daily Income"),
+        "stock": font_style("Stock Market Yield"),
     }
-    label = labels.get(source, source.upper())
+    label = labels.get(source, font_style(source.upper()))
     amount = int(result.get("amount", 0))
     value = int(result.get("value", 0))
     rate = float(result.get("rate", 0.0))
     days = int(result.get("days", 0))
 
     if result.get("already_claimed"):
-        return f"<b>{emoji} {label}</b>\n⚠️ You already claimed just now — try again in 24h."
+        return f"<b>{emoji} {label}</b>\n<blockquote>⚠️ <i>{font_style('You already claimed today — next claim available in 24h')}.</i></blockquote>"
 
     if result.get("started"):
         return (
             f"<b>{emoji} {label}</b>\n"
-            f"<blockquote>"
-            f"📈 Income tracking started.\n"
-            f"💰 Base: {format_money(value)}\n"
-            f"📊 Rate: <b>{rate}%</b> per 24h\n"
-            f"⏳ Check back in 24h to claim."
-            f"</blockquote>"
+            f"<blockquote>📈 <b>{font_style('Tracking Started')}</b>\n"
+            f"💰 <b>{font_style('Holding Base')}:</b> {format_money(value)}\n"
+            f"📊 <b>{font_style('Daily Rate')}:</b> <b>{rate}%</b> / 24h</blockquote>\n"
+            f"<blockquote>⏳ <i>{font_style('Check back in 24h to claim your returns')}.</i></blockquote>"
         )
 
     if amount <= 0:
@@ -246,22 +226,17 @@ def income_claim(source: str, result: dict[str, Any]) -> str:
         hours = max(1, wait // 3600)
         return (
             f"<b>{emoji} {label}</b>\n"
-            f"<blockquote>"
-            f"💰 Base: {format_money(value)}\n"
-            f"📊 Rate: <b>{rate}%</b> per 24h\n"
-            f"⏳ Nothing to claim yet — next income in ~{hours}h."
-            f"</blockquote>"
+            f"<blockquote>💰 <b>{font_style('Holding Base')}:</b> {format_money(value)}\n"
+            f"📊 <b>{font_style('Rate')}:</b> <b>{rate}%</b> / 24h</blockquote>\n"
+            f"<blockquote>⏳ <i>{font_style('Next claim available in')} ~{hours}h.</i></blockquote>"
         )
 
     return (
         f"<b>{emoji} {label}</b>\n"
-        f"<blockquote>"
-        f"💵 Claimed: <b>{format_money(amount)}</b>\n"
-        f"📅 Unclaimed days: {days}\n"
-        f"💰 Base: {format_money(value)}\n"
-        f"📊 Rate: <b>{rate}%</b> per 24h"
-        f"</blockquote>\n"
-        f"<i>Paid to your wallet. Next income in 24h.</i>"
+        f"<blockquote>💵 <b>{font_style('Claimed Earnings')}:</b> <b>{format_money(amount)}</b>\n"
+        f"📅 <b>{font_style('Accrued Days')}:</b> {days}</blockquote>\n"
+        f"<blockquote>💰 <b>{font_style('Base')}:</b> {format_money(value)} · 📊 <b>{font_style('Rate')}:</b> <b>{rate}%</b> / 24h</blockquote>\n"
+        f"<blockquote><i>💡 {font_style('Credited directly to your wallet')}.</i></blockquote>"
     )
 
 
@@ -283,83 +258,168 @@ def transaction_row(tx: dict[str, Any]) -> str:
 
 
 def transactions_list(rows: list[str], empty: bool) -> str:
+    title = font_style("Transaction History")
     if empty:
-        return "<b>🧾 TRANSACTIONS</b>\n<i>No transactions yet.</i>"
-    return "<b>🧾 RECENT TRANSACTIONS</b>\n" + "\n".join(rows)
+        return f"<b>🧾 {title}</b>\n<blockquote><i>{font_style('No transactions recorded yet')}.</i></blockquote>"
+    return f"<b>🧾 {title}</b>\n<blockquote>" + "\n".join(rows) + "</blockquote>"
 
 
 def stock_list(assets: list[dict[str, Any]]) -> str:
-    lines = ["<b>📈 UNOITACHI MARKET</b>", ""]
+    title = font_style("Stock Market Overview")
+    lines = [f"<b>📈 {title}</b>", "<blockquote>"]
     for a in assets:
         arrow = "▲" if a.get("change_percent", 0) >= 0 else "▼"
         lines.append(
             f"<code>{escape(a['symbol'])}</code> "
-            f"{format_money(a.get('price', 0))} "
-            f"<b>{arrow} {abs(a.get('change_percent', 0)):.2f}%</b>"
+            f"<b>{format_money(a.get('price', 0))}</b> "
+            f"{arrow} {abs(a.get('change_percent', 0)):.2f}%"
         )
+    lines.append("</blockquote>")
+    lines.append(f"<blockquote><i>💡 {font_style('Use /buystock SYMBOL qty to invest')}</i></blockquote>")
     return "\n".join(lines)
 
 
 def stock_detail(asset: dict[str, Any]) -> str:
     arrow = "▲" if asset.get("change_percent", 0) >= 0 else "▼"
     return (
-        f"<b>📈 {escape(asset['symbol'])} — {escape(asset.get('name', ''))}</b>\n"
-        f"<blockquote>"
-        f"💵 Price: <b>{format_money(asset.get('price', 0))}</b> "
-        f"{arrow} {asset.get('change_percent', 0):.2f}%\n"
-        f"📈 24h High: {format_money(asset.get('high_price', 0))}\n"
-        f"📉 24h Low: {format_money(asset.get('low_price', 0))}\n"
-        f"📊 Volatility: {asset.get('volatility', 0):.1%}"
-        f"</blockquote>"
+        f"<b>📈 {font_style(asset['symbol'])} — {escape(asset.get('name', ''))}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Current Price')}:</b> <b>{format_money(asset.get('price', 0))}</b> {arrow} {asset.get('change_percent', 0):.2f}%</blockquote>\n"
+        f"<blockquote>📊 <b>24h High:</b> {format_money(asset.get('high_price', 0))}\n"
+        f"📉 <b>24h Low:</b> {format_money(asset.get('low_price', 0))}\n"
+        f"📈 <b>{font_style('Volatility')}:</b> {asset.get('volatility', 0):.1%}</blockquote>"
     )
 
 
 def stock_trade(action: str, symbol: str, qty: float, total: int, tx_id: str) -> str:
-    verb = "Bought" if action == "buy" else "Sold"
+    verb = font_style("Shares Purchased") if action == "buy" else font_style("Shares Sold")
     return (
-        f"<b>✅ {verb} {escape(symbol)}</b>\n"
-        f"<blockquote>"
-        f"🔢 Quantity: {qty}\n"
-        f"💵 Total: <b>{format_money(total)}</b>\n"
-        f"🧾 <code>#{tx_id}</code>"
-        f"</blockquote>"
+        f"<b>✅ {verb} — {escape(symbol)}</b>\n"
+        f"<blockquote>🔢 <b>{font_style('Quantity')}:</b> <b>{qty}</b>\n"
+        f"💵 <b>{font_style('Total Value')}:</b> <b>{format_money(total)}</b></blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
     )
 
 
 def portfolio(rows: list[str], total_value: int, total_cost: int) -> str:
     pnl = total_value - total_cost
     sign = "+" if pnl >= 0 else ""
-    lines = ["<b>📊 PORTFOLIO</b>", ""]
-    lines.extend(rows)
-    lines += [
-        "",
-        f"<b>Total Stock Value:</b> {format_money(total_value)}",
-        f"<b>Total P/L:</b> {sign}{format_money(pnl)}",
-    ]
-    return "\n".join(lines)
+    title = font_style("Stocks Portfolio")
+    return (
+        f"<b>📊 {title}</b>\n"
+        f"<blockquote>" + "\n".join(rows) + "</blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Total Stock Value')}:</b> <b>{format_money(total_value)}</b>\n"
+        f"📈 <b>{font_style('Total P/L')}:</b> <b>{sign}{format_money(pnl)}</b></blockquote>"
+    )
 
 
 def fly_result(difficulty: str, bet: int, won: bool, multiplier: float, payout: int, tx_id: str) -> str:
-    head = "✈️ FLY GAME" if won else "💥 FLY GAME"
-    result = (
-        f"<b>✅ YOU WON!</b>\nPayout: <b>{format_money(payout)}</b> "
-        f"({multiplier:.2f}x on {format_money(bet)})"
-        if won
-        else f"<b>❌ YOU CRASHED!</b>\nLost: {format_money(bet)}"
-    )
+    head = f"✈️ {font_style('Fly Multiplier Game')}" if won else f"💥 {font_style('Plane Crashed')}"
+    if won:
+        outcome = f"✅ <b>{font_style('You Won')}!</b> <b>{format_money(payout)}</b> ({multiplier:.2f}x)"
+    else:
+        outcome = f"❌ <b>{font_style('Crash Loss')}!</b> {format_money(bet)}"
     return (
-        f"<b>{head}</b> — <i>{escape(difficulty)}</i>\n"
-        f"<blockquote>{result}\n🧾 <code>#{tx_id}</code></blockquote>"
+        f"<b>{head}</b>\n"
+        f"<blockquote>🎯 <b>{font_style('Difficulty')}:</b> {escape(difficulty.title())}\n"
+        f"💰 <b>{font_style('Bet Amount')}:</b> {format_money(bet)}</blockquote>\n"
+        f"<blockquote>{outcome}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
     )
 
 
 def bet_result(bet: int, won: bool, multiplier: float, payout: int, tx_id: str) -> str:
     result = (
-        f"<b>✅ WIN!</b> {format_money(payout)} ({multiplier:.2f}x)"
+        f"✅ <b>{font_style('You Won')}!</b> <b>{format_money(payout)}</b> ({multiplier:.2f}x)"
         if won
-        else f"<b>❌ LOSS</b> {format_money(bet)}"
+        else f"❌ <b>{font_style('You Lost')}!</b> {format_money(bet)}"
     )
-    return f"<b>🎲 BET GAME</b>\n<blockquote>{result}\n🧾 <code>#{tx_id}</code></blockquote>"
+    return (
+        f"<b>🎲 {font_style('Dice Gamble')}</b>\n"
+        f"<blockquote>💰 <b>{font_style('Bet')}:</b> {format_money(bet)}</blockquote>\n"
+        f"<blockquote>{result}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+
+
+def coinflip_result(
+    bet: int, picked: str, flipped: str, won: bool, multiplier: float, payout: int, tx_id: str
+) -> str:
+    picked_str = font_style("Heads") + " (👑)" if picked == "heads" else font_style("Tails") + " (🦅)"
+    flipped_str = font_style("Heads") + " (👑)" if flipped == "heads" else font_style("Tails") + " (🦅)"
+    if won:
+        res = f"✅ <b>{font_style('You Won')}!</b> <b>{format_money(payout)}</b> ({multiplier:.2f}x)"
+    else:
+        res = f"❌ <b>{font_style('You Lost')}!</b> {format_money(bet)}"
+
+    return (
+        f"<b>🪙 {font_style('Coin Flip Challenge')}</b>\n"
+        f"<blockquote>🎯 <b>{font_style('Your Choice')}:</b> {picked_str}\n"
+        f"🪙 <b>{font_style('Coin Landed')}:</b> {flipped_str}</blockquote>\n"
+        f"<blockquote>{res}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+
+
+def roulette_result(
+    bet: int, selection: str, landed_number: int, landed_color: str, landed_emoji: str,
+    won: bool, multiplier: float, payout: int, tx_id: str
+) -> str:
+    if won:
+        res = f"✅ <b>{font_style('Jackpot Win')}!</b> <b>{format_money(payout)}</b> ({multiplier:.1f}x)"
+    else:
+        res = f"❌ <b>{font_style('No Match')}!</b> {format_money(bet)}"
+
+    return (
+        f"<b>🎡 {font_style('European Roulette')}</b>\n"
+        f"<blockquote>🎯 <b>{font_style('Your Bet')}:</b> {escape(selection.upper())}\n"
+        f"📍 <b>{font_style('Outcome')}:</b> {landed_emoji} <b>{landed_number} ({landed_color.upper()})</b></blockquote>\n"
+        f"<blockquote>{res}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+
+
+def satta_result(
+    bet: int, bet_type: str, selection: str, drawn_number: str, open_digit: int,
+    close_digit: int, sum_digit: int, won: bool, multiplier: float, payout: int, tx_id: str
+) -> str:
+    title = font_style("Satta Matka Jackpot")
+    if won:
+        if bet_type == "jodi":
+            outcome = f"👑 <b>{font_style('Jackpot Jodi Win')}!</b> <b>{format_money(payout)}</b> (90.0x)"
+        elif bet_type == "single":
+            outcome = f"✅ <b>{font_style('Haruf Single Win')}!</b> <b>{format_money(payout)}</b> (9.0x)"
+        else:
+            outcome = f"✅ <b>{font_style('You Won')}!</b> <b>{format_money(payout)}</b> ({multiplier:.1f}x)"
+    else:
+        outcome = f"❌ <b>{font_style('No Match')}!</b> Lost: {format_money(bet)}"
+
+    return (
+        f"<b>🎰 {title}</b>\n"
+        f"<blockquote>🎯 <b>{font_style('Your Bet')}:</b> <b>{escape(selection.upper())}</b> ({bet_type.title()})\n"
+        f"🎲 <b>{font_style('Satta Draw')}:</b> <b>[{open_digit} + {close_digit} = {sum_digit}] ➔ {drawn_number}</b></blockquote>\n"
+        f"<blockquote>{outcome}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+
+
+def color_trade_result(
+    bet: int, bet_type: str, selection: str, drawn_number: int,
+    color_emoji: str, color_name: str, size_name: str,
+    won: bool, multiplier: float, payout: int, tx_id: str
+) -> str:
+    title = font_style("Color Trading & Big-Small")
+    if won:
+        outcome = f"✅ <b>{font_style('Prediction Success')}!</b> <b>{format_money(payout)}</b> ({multiplier:.1f}x)"
+    else:
+        outcome = f"❌ <b>{font_style('Prediction Failed')}!</b> Lost: {format_money(bet)}"
+
+    return (
+        f"<b>🎨 {title}</b>\n"
+        f"<blockquote>🎯 <b>{font_style('Your Prediction')}:</b> <b>{escape(selection.upper())}</b> ({bet_type.title()})\n"
+        f"🎲 <b>{font_style('Win Go Outcome')}:</b> {color_emoji} <b>Number {drawn_number}</b> · {color_name} · {size_name}</blockquote>\n"
+        f"<blockquote>{outcome}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
 
 
 def format_duration(seconds: int) -> str:
@@ -379,16 +439,17 @@ def format_duration(seconds: int) -> str:
 
 def game_cooldown(game: str, remaining: int) -> str:
     return (
-        f"<b>⏳ {escape(game.title())} is on cooldown.</b>\n"
-        f"<i>Try again in <b>{format_duration(remaining)}</b>.</i>"
+        f"<b>⏳ {font_style(game.title())} is on cooldown.</b>\n"
+        f"<blockquote><i>Try again in <b>{format_duration(remaining)}</b>.</i></blockquote>"
     )
 
 
 def reward_claimed(kind: str, amount: int, cooldown: int) -> str:
+    title = font_style(f"{kind.title()} Reward")
     return (
-        f"<b>🎁 {escape(kind.title())} REWARD</b>\n"
-        f"<blockquote>You claimed <b>{format_money(amount)}</b>.\n"
-        f"Next claim in {format_duration(cooldown)}.</blockquote>"
+        f"<b>🎁 {title}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Claimed')}:</b> <b>{format_money(amount)}</b></blockquote>\n"
+        f"<blockquote>⏳ <b>{font_style('Next Claim')}:</b> in {format_duration(cooldown)}</blockquote>"
     )
 
 
@@ -493,16 +554,15 @@ def admin_help() -> str:
 
 
 def admin_stats(stats: dict[str, Any]) -> str:
+    title = font_style("Central Economy Analytics")
     return (
-        f"<b>📊 ECONOMY STATS</b>\n"
-        f"<blockquote>"
-        f"👥 Users: {stats['users']}\n"
-        f"💰 Total In Circulation: {format_money(stats['total_wallet'])}\n"
-        f"🏦 Total Banked: {format_money(stats['total_bank'])}\n"
-        f"🏛️ Tax Pool: {format_money(stats['tax_pool'])}\n"
-        f"🧾 Transactions: {stats['transactions']}\n"
-        f"📈 Active Stocks: {stats['stocks']}"
-        f"</blockquote>"
+        f"<b>📊 {title}</b>\n"
+        f"<blockquote>👥 <b>{font_style('Active Citizens')}:</b> <b>{stats['users']}</b>\n"
+        f"🧾 <b>{font_style('Ledger Transactions')}:</b> <b>{stats['transactions']}</b></blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Circulating Currency')}:</b> {format_money(stats['total_wallet'])}\n"
+        f"🏦 <b>{font_style('Total Bank Vault')}:</b> {format_money(stats['total_bank'])}</blockquote>\n"
+        f"<blockquote>🏛️ <b>{font_style('Federal Tax Pool')}:</b> <b>{format_money(stats['tax_pool'])}</b>\n"
+        f"📈 <b>{font_style('Live Market Stocks')}:</b> <b>{stats['stocks']}</b></blockquote>"
     )
 
 
@@ -513,32 +573,29 @@ def tx_track_detail(tx: dict[str, Any]) -> str:
         f"<code>{escape(str(k))}</code>: <b>{escape(str(v))}</b>"
         for k, v in meta.items()
     ]
+    title = font_style("Transaction Audit Tracker")
     return (
-        f"<b>🧾 TRANSACTION TRACKER</b>\n"
-        f"<blockquote>"
-        f"🆔 ID: <code>#{tx.get('transaction_id', '')}</code>\n"
-        f"👤 User: <code>{tx.get('user_id', '')}</code>\n"
-        f"📦 Type: <b>{escape(str(tx.get('type', '')))}</b>\n"
-        f"💰 Amount: {format_money(int(tx.get('amount', 0)))}\n"
-        f"💵 Balance Before: {format_money(int(tx.get('balance_before', 0)))}\n"
-        f"💵 Balance After: {format_money(int(tx.get('balance_after', 0)))}"
-        f"</blockquote>"
-        + ("\n📎 Metadata:\n" + "\n".join(meta_lines) if meta_lines else "")
-        + f"\n🕒 At: <code>{tx.get('created_at', '')}</code>"
+        f"<b>🧾 {title}</b>\n"
+        f"<blockquote>🆔 <b>{font_style('Tx ID')}:</b> <code>#{tx.get('transaction_id', '')}</code>\n"
+        f"👤 <b>{font_style('User')}:</b> <code>{tx.get('user_id', '')}</code>\n"
+        f"📦 <b>{font_style('Category')}:</b> <b>{escape(str(tx.get('type', '')))}</b></blockquote>\n"
+        f"<blockquote>💰 <b>{font_style('Amount')}:</b> <b>{format_money(int(tx.get('amount', 0)))}</b>\n"
+        f"💵 <b>{font_style('Pre-Balance')}:</b> {format_money(int(tx.get('balance_before', 0)))}\n"
+        f"💵 <b>{font_style('Post-Balance')}:</b> {format_money(int(tx.get('balance_after', 0)))}</blockquote>"
+        + ("\n<blockquote>📎 <b>Metadata:</b>\n" + "\n".join(meta_lines) + "</blockquote>" if meta_lines else "")
     )
 
 
 def taxinfo(taxes: dict[str, Any], pool: int, bank_settings: dict[str, Any]) -> str:
     """Admin view of every per-system tax rate + tax pool size."""
-    rows = [f"<code>{k}</code>: <b>{v}%</b>" for k, v in taxes.items()]
+    rows = [f"• <code>{k}</code>: <b>{v}%</b>" for k, v in taxes.items()]
     bank_rate = bank_settings.get("withdrawal_tax_rate", 5.0)
+    title = font_style("Federal Tax System Overview")
     return (
-        f"<b>🏛️ TAX INFO</b>\n"
-        f"<blockquote>"
-        f"💰 Pool: {format_money(pool)}\n"
-        f"🏦 Bank (withdrawal): <b>{bank_rate}%</b>"
-        f"</blockquote>\n"
-        f"📊 System taxes:\n" + "\n".join(rows)
+        f"<b>🏛️ {title}</b>\n"
+        f"<blockquote>💰 <b>{font_style('Central Tax Pool')}:</b> <b>{format_money(pool)}</b>\n"
+        f"🏦 <b>{font_style('Withdrawal Tax')}:</b> <b>{bank_rate}%</b></blockquote>\n"
+        f"<blockquote>📊 <b>{font_style('Sector Tax Rates')}:</b>\n" + "\n".join(rows) + "</blockquote>"
     )
 
 
@@ -548,14 +605,13 @@ def tax_distribution(result: dict[str, Any]) -> str:
         f"<code>#{r['rank']}</code> · User <code>{r['user_id']}</code> — <b>{format_money(r['amount'])}</b>"
         for r in result.get("results", [])
     ]
+    title = font_style("Tax Pool Monthly Dividend")
     return (
-        f"<b>🏛️ TAX DISTRIBUTION</b>\n"
-        f"<blockquote>"
-        f"💰 Pool: {format_money(result['pool'])}\n"
-        f"💸 Distributed: <b>{format_money(result['distributed'])}</b>\n"
-        f"👥 Recipients: {len(result.get('results', []))}"
-        f"</blockquote>\n"
-        f"{chr(10).join(rows)}"
+        f"<b>🏛️ {title}</b>\n"
+        f"<blockquote>💰 <b>{font_style('Total Pool')}:</b> {format_money(result['pool'])}\n"
+        f"💸 <b>{font_style('Distributed')}:</b> <b>{format_money(result['distributed'])}</b>\n"
+        f"👥 <b>{font_style('Beneficiaries')}:</b> {len(result.get('results', []))}</blockquote>\n"
+        f"<blockquote>" + "\n".join(rows) + "</blockquote>"
     )
 
 
@@ -573,47 +629,44 @@ def userinfo(user: dict[str, Any], stats: dict[str, Any]) -> str:
     if user.get("is_frozen"):
         badges.append("<s>FROZEN</s>")
     badge_text = " " + " ".join(badges) if badges else ""
+    title = font_style("Citizen dossier")
     return (
-        f"<b>👤 USER INFO</b>{badge_text}\n"
-        f"<blockquote>"
-        f"👤 {_link(user['user_id'], name)}\n"
-        f"🆔 <code>{user['user_id']}</code>\n"
-        f"💵 Wallet: {format_money(user.get('wallet', 0))}\n"
-        f"🏦 Bank: {format_money(user.get('bank', 0))}\n"
-        f"📈 Stocks: {format_money(user.get('stocks_value', 0))}\n"
-        f"🏠 Assets: {format_money(user.get('asset_value', 0))}\n"
-        f"💎 Net Worth: {format_money(net)}\n"
-        f"💸 Total Earned: {format_money(user.get('total_earned', 0))}\n"
-        f"💳 Total Spent: {format_money(user.get('total_spent', 0))}\n"
-        f"🏆 Monthly Rank: {user.get('monthly_rank') or '—'}\n"
-        f"🧾 Transactions: {stats['transactions']}"
-        f"</blockquote>"
+        f"<b>👤 {title}</b>{badge_text}\n"
+        f"<blockquote>👤 {_link(user['user_id'], name)} (<code>{user['user_id']}</code>)</blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Wallet')}:</b> {format_money(user.get('wallet', 0))}\n"
+        f"🏦 <b>{font_style('Bank')}:</b> {format_money(user.get('bank', 0))}\n"
+        f"💎 <b>{font_style('Net Worth')}:</b> <b>{format_money(net)}</b></blockquote>\n"
+        f"<blockquote>📈 <b>{font_style('Stocks')}:</b> {format_money(user.get('stocks_value', 0))}\n"
+        f"🏠 <b>{font_style('Assets')}:</b> {format_money(user.get('asset_value', 0))}</blockquote>\n"
+        f"<blockquote>🏆 <b>{font_style('Monthly Rank')}:</b> <b>{user.get('monthly_rank') or '—'}</b>\n"
+        f"🧾 <b>{font_style('Transactions')}:</b> {stats['transactions']}</blockquote>"
     )
 
 
 def banksettings(settings: dict[str, Any], tax_pool: int) -> str:
+    title = font_style("Banking Policy & Rates")
     return (
-        f"<b>🏦 BANK SETTINGS</b>\n"
-        f"<blockquote>"
-        f"📈 Interest Rate: <b>{settings.get('interest_rate', 2.0)}%</b> / {settings.get('interest_interval_hours', 24)}h\n"
-        f"🧾 Withdrawal Tax: <b>{settings.get('withdrawal_tax_rate', 5.0)}%</b>\n"
-        f"🏛️ Tax Pool: {format_money(tax_pool)}"
-        f"</blockquote>"
+        f"<b>🏦 {title}</b>\n"
+        f"<blockquote>📈 <b>{font_style('Daily Interest')}:</b> <b>{settings.get('interest_rate', 2.0)}%</b> / {settings.get('interest_interval_hours', 24)}h\n"
+        f"🧾 <b>{font_style('Withdrawal Fee')}:</b> <b>{settings.get('withdrawal_tax_rate', 5.0)}%</b></blockquote>\n"
+        f"<blockquote>🏛️ <b>{font_style('Accumulated Tax Pool')}:</b> <b>{format_money(tax_pool)}</b></blockquote>"
     )
 
 
 def tax_reward_notice(rank: int, amount: int) -> str:
+    title = font_style("Monthly Tax Dividend Reward")
     return (
-        f"<b>🏆 MONTHLY TAX REWARD</b>\n"
-        f"You placed <b>#{rank}</b> this month and received "
-        f"<b>{format_money(amount)}</b> from the tax pool!"
+        f"<b>🏆 {title}</b>\n"
+        f"<blockquote>👑 You placed <b>#{rank}</b> on the monthly leaderboard!\n"
+        f"💰 Dividend Received: <b>{format_money(amount)}</b> from the Central Tax Pool.</blockquote>"
     )
 
 
 def interest_notice(amount: int) -> str:
+    title = font_style("Bank Daily Interest Credited")
     return (
-        f"<b>🏦 INTEREST CREDITED</b>\n"
-        f"Your bank deposit earned <b>{format_money(amount)}</b> in 24h interest."
+        f"<b>🏦 {title}</b>\n"
+        f"<blockquote>💵 Your savings deposit earned <b>{format_money(amount)}</b> in daily yield.</blockquote>"
     )
 
 
@@ -635,16 +688,19 @@ def group_config_status(chat_id: int, cfg: dict[str, Any]) -> str:
     )
 
 
-def asset_list(assets: list[dict[str, Any]], title: str = "🏠 ASSET MARKET") -> str:
-    lines = [f"<b>{title}</b>", ""]
+def asset_list(assets: list[dict[str, Any]], title: str = "ASSET MARKET") -> str:
+    styled_title = font_style(title)
+    lines = [f"<b>🏠 {styled_title}</b>", "<blockquote>"]
     for a in assets:
         arrow = "▲" if a.get("change_percent", 0) >= 0 else "▼"
         emoji = a.get("emoji", "📦")
         lines.append(
             f"{emoji} <code>{escape(a['symbol'])}</code> "
-            f"{format_money(a.get('price', 0))} "
-            f"<b>{arrow} {abs(a.get('change_percent', 0)):.2f}%</b>"
+            f"<b>{format_money(a.get('price', 0))}</b> "
+            f"{arrow} {abs(a.get('change_percent', 0)):.2f}%"
         )
+    lines.append("</blockquote>")
+    lines.append(f"<blockquote><i>💡 {font_style('Use /buyasset SYMBOL qty to acquire properties & assets')}</i></blockquote>")
     return "\n".join(lines)
 
 
@@ -653,117 +709,92 @@ def asset_detail(asset: dict[str, Any]) -> str:
     emoji = asset.get("emoji", "📦")
     frac = "Fractional" if asset.get("allow_fractional") else "Whole units"
     return (
-        f"<b>{emoji} {escape(asset['symbol'])} — {escape(asset.get('name', ''))}</b>\n"
-        f"<blockquote>"
-        f"📋 Category: {escape(str(asset.get('category', 'OTHER')))}\n"
-        f"💵 Price: <b>{format_money(asset.get('price', 0))}</b> "
-        f"{arrow} {asset.get('change_percent', 0):.2f}%\n"
-        f"📈 24h High: {format_money(asset.get('high_price', 0))}\n"
-        f"📉 24h Low: {format_money(asset.get('low_price', 0))}\n"
-        f"📊 Volatility: {asset.get('volatility', 0):.1%}\n"
-        f"🔢 {frac} · Min {asset.get('min_quantity', 1):g}"
-        + (f" · Max {asset.get('max_quantity', 0):g}" if asset.get("max_quantity") else "")
-        + "\n"
-        f"📝 {escape(asset.get('description', 'No description'))}"
-        f"</blockquote>"
+        f"<b>{emoji} {font_style(asset['symbol'])} — {escape(asset.get('name', ''))}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Current Price')}:</b> <b>{format_money(asset.get('price', 0))}</b> {arrow} {asset.get('change_percent', 0):.2f}%\n"
+        f"📋 <b>{font_style('Category')}:</b> {escape(str(asset.get('category', 'OTHER')))}</blockquote>\n"
+        f"<blockquote>📈 <b>24h High:</b> {format_money(asset.get('high_price', 0))}\n"
+        f"📉 <b>24h Low:</b> {format_money(asset.get('low_price', 0))}\n"
+        f"📊 <b>{font_style('Volatility')}:</b> {asset.get('volatility', 0):.1%}</blockquote>\n"
+        f"<blockquote>📝 <i>{escape(asset.get('description', 'Prime real-estate & luxury asset'))}</i></blockquote>"
     )
 
 
 def asset_trade(action: str, result: dict[str, Any]) -> str:
-    verb = "Bought" if action == "buy" else "Sold"
+    verb = font_style("Asset Acquired") if action == "buy" else font_style("Asset Liquidated")
     return (
-        f"<b>✅ {verb} {escape(result['symbol'])}</b>\n"
-        f"<blockquote>"
-        f"🔢 Quantity: <b>{result['quantity']:g}</b>\n"
-        f"💵 Total: <b>{format_money(result['total'] if action == 'buy' else result['received'])}</b>\n"
-        f"🧾 <code>#{result['tx_id']}</code>"
-        f"</blockquote>"
+        f"<b>✅ {verb} — {escape(result['symbol'])}</b>\n"
+        f"<blockquote>🔢 <b>{font_style('Quantity')}:</b> <b>{result['quantity']:g}</b>\n"
+        f"💵 <b>{font_style('Total Value')}:</b> <b>{format_money(result['total'] if action == 'buy' else result['received'])}</b></blockquote>\n"
+        f"<blockquote>🧾 <code>#{result['tx_id']}</code></blockquote>"
     )
 
 
 def asset_confirm_buy(symbol: str, name: str, emoji: str, qty: float, price: int, total: int) -> str:
     return (
-        f"<b>🛒 CONFIRM PURCHASE</b>\n"
-        f"<blockquote>"
-        f"{emoji} <code>{escape(symbol)}</code> — {escape(name)}\n"
-        f"🔢 Quantity: <b>{qty:g}</b>\n"
-        f"💵 Unit Price: <b>{format_money(price)}</b>\n"
-        f"🧮 Total: <b>{format_money(total)}</b>"
-        f"</blockquote>\n"
-        f"<i>Price will be re-checked before the purchase completes.</i>"
+        f"<b>🛒 {font_style('Confirm Asset Purchase')}</b>\n"
+        f"<blockquote>{emoji} <code>{escape(symbol)}</code> — {escape(name)}\n"
+        f"🔢 <b>{font_style('Quantity')}:</b> <b>{qty:g}</b>\n"
+        f"💵 <b>{font_style('Unit Price')}:</b> <b>{format_money(price)}</b></blockquote>\n"
+        f"<blockquote>💰 <b>{font_style('Total Payable')}:</b> <b>{format_money(total)}</b></blockquote>"
     )
 
 
 def asset_portfolio(rows: list[str], total_value: int, total_invested: int) -> str:
     pnl = total_value - total_invested
     sign = "+" if pnl >= 0 else ""
-    lines = ["<b>🏠 ASSET PORTFOLIO</b>", ""]
-    lines.extend(rows)
-    lines += [
-        "",
-        f"<b>Total Asset Value:</b> {format_money(total_value)}",
-        f"<b>Total Invested:</b> {format_money(total_invested)}",
-        f"<b>Total P/L:</b> {sign}{format_money(pnl)}",
-    ]
-    return "\n".join(lines)
+    title = font_style("Real-Estate & Asset Holdings")
+    return (
+        f"<b>🏠 {title}</b>\n"
+        f"<blockquote>" + "\n".join(rows) + "</blockquote>\n"
+        f"<blockquote>💵 <b>{font_style('Total Asset Value')}:</b> <b>{format_money(total_value)}</b>\n"
+        f"📈 <b>{font_style('Total P/L')}:</b> <b>{sign}{format_money(pnl)}</b></blockquote>"
+    )
 
 
 def asset_buy_info(info: dict[str, Any]) -> str:
     asset = info["asset"]
     arrow = "▲" if asset.get("change_percent", 0) >= 0 else "▼"
     emoji = asset.get("emoji", "📦")
-    frac = "Fractional" if asset.get("allow_fractional") else "Whole units"
-    fee = f" · Buy fee {info['fee_buy']:g}%" if info["fee_buy"] else ""
     return (
-        f"<b>{emoji} {escape(asset['symbol'])} — {escape(asset.get('name', ''))}</b>\n"
-        f"<blockquote>"
-        f"💵 Current Price: <b>{format_money(asset.get('price', 0))}</b> "
-        f"{arrow} {asset.get('change_percent', 0):.2f}% (24h)\n"
-        f"📈 24h High: {format_money(asset.get('high_price', 0))} · "
-        f"📉 24h Low: {format_money(asset.get('low_price', 0))}\n"
-        f"📊 Volatility: {asset.get('volatility', 0):.1%}\n"
-        f"🔢 {frac} · Min {asset.get('min_quantity', 1):g}"
-        + (f" · Max {asset.get('max_quantity', 0):g}" if asset.get("max_quantity") else "")
-        + f"{fee}\n"
-        f"🏛️ Market Cap: {format_money(info['market_cap'])} · "
-        f"👥 Holders: {info['holders']} · 📦 Held: {info['total_held']:g}\n"
-        f"🧾 Trades: {info['trades']} · 📋 Category: {escape(str(asset.get('category', 'OTHER')))}\n"
-        f"📝 {escape(asset.get('description', 'No description'))}"
-        f"</blockquote>\n"
-        f"<i>Buy with <code>/buyasset {asset['symbol']} qty</code> or grab a user resale via "
-        f"<code>/listings {asset['symbol']}</code>.</i>"
+        f"<b>{emoji} {font_style(asset['symbol'])} — {escape(asset.get('name', ''))}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Price')}:</b> <b>{format_money(asset.get('price', 0))}</b> {arrow} {asset.get('change_percent', 0):.2f}%\n"
+        f"🏛️ <b>{font_style('Market Cap')}:</b> {format_money(info['market_cap'])}</blockquote>\n"
+        f"<blockquote>👥 <b>{font_style('Active Holders')}:</b> {info['holders']} · 📦 <b>{font_style('Circulating')}:</b> {info['total_held']:g}\n"
+        f"🧾 <b>{font_style('Total Trades')}:</b> {info['trades']}</blockquote>\n"
+        f"<blockquote><i>💡 Use <code>/buyasset {asset['symbol']} qty</code> to purchase.</i></blockquote>"
     )
 
 
 def asset_market_stats(stats: dict[str, Any]) -> str:
+    title = font_style("Asset Market Overview")
     return (
-        f"<b>📊 ASSET MARKET STATS</b>\n"
-        f"<blockquote>"
-        f"📈 Total Assets: <b>{stats['active']}</b> / {stats['total']}\n"
-        f"💹 Market Value: {format_money(stats['total_market_value'])}\n"
-        f"🧾 Trading Volume: {format_money(stats['total_volume'])}\n"
-        f"🟢 Gainers: {stats['gainers']} · 🔴 Losers: {stats['losers']} · ⚪ Flat: {stats['unchanged']}"
-        f"</blockquote>"
+        f"<b>📊 {title}</b>\n"
+        f"<blockquote>📈 <b>{font_style('Listed Assets')}:</b> <b>{stats['active']}</b> / {stats['total']}\n"
+        f"💹 <b>{font_style('Total Valuation')}:</b> <b>{format_money(stats['total_market_value'])}</b></blockquote>\n"
+        f"<blockquote>🧾 <b>{font_style('24h Trading Volume')}:</b> {format_money(stats['total_volume'])}\n"
+        f"🟢 <b>Gainers:</b> {stats['gainers']} · 🔴 <b>Losers:</b> {stats['losers']} · ⚪ <b>Flat:</b> {stats['unchanged']}</blockquote>"
     )
 
 
 def listings_list(listings: list[dict[str, Any]], symbol: str | None, page: int, pages: int) -> str:
-    header = "🛒 RESALE MARKET" + (f" — {escape(symbol)}" if symbol else "") + f" (pg {page}/{pages})"
-    lines = [f"<b>{header}</b>", ""]
+    title = font_style("P2P Resale Marketplace")
+    lines = [f"<b>🛒 {title}</b> (pg {page}/{pages})", "<blockquote>"]
     for listing in listings:
         lines.append(
-            f"{listing.get('emoji', '📦')} <code>{listing['listing_id']}</code> "
+            f"{listing.get('emoji', '📦')} <code>#{listing['listing_id']}</code> "
             f"{escape(listing['symbol'])} × <b>{listing['quantity']:g}</b> "
             f"→ <b>{format_money(listing['total_price'])}</b>"
         )
-    lines += ["", "<i>Buy with <code>/buylisting ID</code>. List with <code>/listasset</code>.</i>"]
+    lines.append("</blockquote>")
+    lines.append(f"<blockquote><i>💡 {font_style('Buy via /buylisting ID or list via /listasset')}</i></blockquote>")
     return "\n".join(lines)
 
 
 def my_listings(listings: list[dict[str, Any]]) -> str:
+    title = font_style("My Active Listings")
     if not listings:
-        return "<b>🛒 MY LISTINGS</b>\n<i>You have no listings.</i>"
-    lines = ["<b>🛒 MY LISTINGS</b>", ""]
+        return f"<b>🛒 {title}</b>\n<blockquote><i>{font_style('You currently have no active listings')}.</i></blockquote>"
+    lines = [f"<b>🛒 {title}</b>", "<blockquote>"]
     for listing in listings:
         status = {
             "active": "🟢",
@@ -772,21 +803,22 @@ def my_listings(listings: list[dict[str, Any]]) -> str:
             "cancelled": "❌",
         }.get(listing["status"], "•")
         lines.append(
-            f"{status} <code>{listing['listing_id']}</code> "
+            f"{status} <code>#{listing['listing_id']}</code> "
             f"{escape(listing['symbol'])} × <b>{listing['quantity']:g}</b> "
             f"→ <b>{format_money(listing['total_price'])}</b>"
         )
+    lines.append("</blockquote>")
     return "\n".join(lines)
 
 
 def emoji_lobby(game_label: str, emoji: str, bet: int, game_id: str, expiry: int) -> str:
+    title = font_style(f"{game_label} 1v1 Duel Lobby")
     return (
-        f"<b>⚔️ {emoji} {game_label} DUEL LOBBY</b>\n"
-        f"<blockquote>🎰 Game ID: <code>{game_id}</code>\n"
-        f"💰 Bet: <b>{format_money(bet)}</b>\n"
-        f"⏳ Expires in <b>{format_duration(expiry)}</b></blockquote>\n"
-        f"<i>Another player can join with <code>/join {game_id}</code>. "
-        f"If nobody joins in time, your bet is refunded.</i>"
+        f"<b>⚔️ {emoji} {title}</b>\n"
+        f"<blockquote>🎰 <b>{font_style('Lobby Code')}:</b> <code>{game_id}</code>\n"
+        f"💰 <b>{font_style('Entry Bet')}:</b> <b>{format_money(bet)}</b></blockquote>\n"
+        f"<blockquote>⏳ <b>{font_style('Lobby Expires')}:</b> in <b>{format_duration(expiry)}</b>\n"
+        f"👉 <i>{font_style('Join with')} <code>/join {game_id}</code></i></blockquote>"
     )
 
 
@@ -799,19 +831,17 @@ def emoji_single_result(
     payout: int,
     tx_id: str,
 ) -> str:
-    head = f"{emoji} {game_label}"
+    title = font_style(f"{game_label} Challenge")
     if outcome == "win":
-        body = (
-            f"<b>✅ YOU WON!</b>\n"
-            f"Rolled <b>{result}</b> · Payout: <b>{format_money(payout)}</b> "
-            f"(profit {format_money(payout - bet)})"
-        )
+        body = f"✅ <b>{font_style('Target Hit')}!</b> <b>{format_money(payout)}</b> (Profit: {format_money(payout - bet)})"
     else:
-        body = (
-            f"<b>❌ YOU LOST</b>\n"
-            f"Rolled <b>{result}</b> · Lost: {format_money(bet)}"
-        )
-    return f"<b>{head}</b>\n<blockquote>{body}\n🧾 <code>#{tx_id}</code></blockquote>"
+        body = f"❌ <b>{font_style('Missed Shot')}!</b> Lost: {format_money(bet)}"
+    return (
+        f"<b>{emoji} {title}</b>\n"
+        f"<blockquote>🎯 <b>{font_style('Score Rolled')}:</b> <b>{result}</b></blockquote>\n"
+        f"<blockquote>{body}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
 
 
 def emoji_duel_result(
@@ -826,28 +856,22 @@ def emoji_duel_result(
 ) -> str:
     name1, result1 = player1
     name2, result2 = player2
-    lines = [
-        f"<b>⚔️ {emoji} {game_label} DUEL</b>",
-        "",
-        f"🔴 {escape(name1)}: rolled <b>{result1}</b>",
-        f"🔵 {escape(name2)}: rolled <b>{result2}</b>",
-        "",
-    ]
+    title = font_style(f"{game_label} Duel Result")
+    
     if winner is None:
-        lines += [
-            "<b>🤝 DRAW!</b>",
-            f"Both bets ({format_money(bet)}) returned.",
-        ]
+        outcome_block = f"🤝 <b>{font_style('Draw Match')}!</b> Both bets ({format_money(bet)}) refunded."
     else:
         winner_name, _ = winner
-        lines += [
-            f"<b>🏆 {escape(winner_name)} WINS!</b>",
-            f"Pot: <b>{format_money(payout)}</b> "
-            f"(bet {format_money(bet)} + {format_money(bet)})",
-        ]
-    if tx_id:
-        lines += ["", f"🧾 <code>#{tx_id}</code>"]
-    return "\n".join(lines)
+        outcome_block = f"🏆 <b>{escape(winner_name)} {font_style('Wins the Duel')}!</b>\n💰 <b>{font_style('Total Pot')}:</b> <b>{format_money(payout)}</b>"
+
+    tx_line = f"\n<blockquote>🧾 <code>#{tx_id}</code></blockquote>" if tx_id else ""
+    return (
+        f"<b>⚔️ {emoji} {title}</b>\n"
+        f"<blockquote>🔴 {escape(name1)}: <b>{result1}</b>\n"
+        f"🔵 {escape(name2)}: <b>{result2}</b></blockquote>\n"
+        f"<blockquote>{outcome_block}</blockquote>"
+        f"{tx_line}"
+    )
 
 
 def blackjack_result(
@@ -860,22 +884,19 @@ def blackjack_result(
     payout: int,
     tx_id: str,
 ) -> str:
+    title = font_style("Blackjack Table")
     if outcome == "win":
-        verdict = (
-            f"<b>✅ YOU BEAT THE BOT!</b>\n"
-            f"Payout: <b>{format_money(payout)}</b> "
-            f"(profit {format_money(payout - bet)})"
-        )
+        verdict = f"✅ <b>{font_style('Dealer Defeated')}!</b> <b>{format_money(payout)}</b> (Profit: {format_money(payout - bet)})"
     elif outcome == "loss":
-        verdict = f"<b>❌ BOT WINS</b>\nLost: {format_money(bet)}"
+        verdict = f"❌ <b>{font_style('Dealer Won')}!</b> Lost: {format_money(bet)}"
     else:
-        verdict = f"<b>🤝 DRAW — bet returned</b> ({format_money(bet)})"
+        verdict = f"🤝 <b>{font_style('Push (Draw)')}!</b> Bet returned ({format_money(bet)})"
     return (
-        f"<b>🃏 BLACKJACK</b>\n"
-        f"<blockquote>🫵 You: {' '.join(user_cards)} → <b>{user_total}</b>\n"
-        f"🤖 Bot: {' '.join(bot_cards)} → <b>{bot_total}</b>\n"
-        f"{verdict}</blockquote>\n"
-        f"🧾 <code>#{tx_id}</code>"
+        f"<b>🃏 {title}</b>\n"
+        f"<blockquote>🫵 <b>{font_style('Your Hand')}:</b> {' '.join(user_cards)} → <b>{user_total}</b>\n"
+        f"🤖 <b>{font_style('Bot Dealer')}:</b> {' '.join(bot_cards)} → <b>{bot_total}</b></blockquote>\n"
+        f"<blockquote>{verdict}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
     )
 
 
@@ -1068,3 +1089,130 @@ def promo_stats(stats: dict[str, Any]) -> str:
         ago = int(time.time()) - int(stats["last_redeemed_at"])
         lines.append(f"🕒 Last redemption: {format_duration(ago)} ago")
     return f"<b>📊 PROMO STATS</b>\n<blockquote>{chr(10).join(lines)}</blockquote>"
+
+
+def loan_taken(principal: int, interest_fee: int, total_debt: int, tx_id: str) -> str:
+    title = font_style("Bank Loan Approved")
+    return (
+        f"<b>🏦 {title}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Principal Borrowed')}:</b> <b>{format_money(principal)}</b>\n"
+        f"🧾 <b>{font_style('Interest Fee')}:</b> {format_money(interest_fee)} (5%)\n"
+        f"💳 <b>{font_style('Total Debt Due')}:</b> <b>{format_money(total_debt)}</b></blockquote>\n"
+        f"<blockquote>💡 <i>{font_style('Funds added to wallet. Repay anytime via')} <code>/repay</code>.</i></blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+
+
+def loan_repaid(repaid: int, remaining_debt: int, is_cleared: bool, tx_id: str) -> str:
+    title = font_style("Bank Loan Repayment")
+    if is_cleared:
+        status_line = f"🎉 <b>{font_style('Loan Fully Cleared')}!</b> You have zero outstanding debt."
+    else:
+        status_line = f"💳 <b>{font_style('Remaining Debt')}:</b> <b>{format_money(remaining_debt)}</b>"
+
+    return (
+        f"<b>🏦 {title}</b>\n"
+        f"<blockquote>💵 <b>{font_style('Amount Repaid')}:</b> <b>{format_money(repaid)}</b>\n"
+        f"{status_line}</blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+
+
+def loan_status_view(status: dict[str, Any]) -> str:
+    title = font_style("Central Bank Credit & Loans")
+    if not status["has_active_loan"]:
+        return (
+            f"<b>🏦 {title}</b>\n"
+            f"<blockquote>🟢 <b>{font_style('Credit Status')}:</b> <b>{font_style('No Active Debt')}</b>\n"
+            f"💰 <b>{font_style('Borrowing Limit')}:</b> <b>{format_money(status['max_limit'])}</b>\n"
+            f"📈 <b>{font_style('Loan Interest Rate')}:</b> <b>{status['interest_rate']}%</b></blockquote>\n"
+            f"<blockquote>💡 <i>{font_style('Borrow funds with')} <code>/loan amount</code>.</i></blockquote>"
+        )
+
+    return (
+        f"<b>🏦 {title}</b>\n"
+        f"<blockquote>🔴 <b>{font_style('Active Loan Debt')}:</b> <b>{format_money(status['active_debt'])}</b>\n"
+        f"💵 <b>{font_style('Initial Principal')}:</b> {format_money(status['principal'])}\n"
+        f"🧾 <b>{font_style('Interest Accrued')}:</b> {format_money(status['interest'])}</blockquote>\n"
+        f"<blockquote>👉 <i>{font_style('Repay using')} <code>/repay [amount]</code> {font_style('from your wallet')}.</i></blockquote>"
+    )
+
+
+def armory_catalog(guns: dict[str, dict[str, Any]], user_guns: list[str]) -> str:
+    title = font_style("Black Market Armory & Gun Store")
+    items = list(guns.items())
+    half = len(items) // 2
+
+    b1_lines = []
+    for gid, g in items[:half]:
+        owned = " [EQUIPPED ✅]" if gid in user_guns else ""
+        b1_lines.append(
+            f"{g['emoji']} <b>{g['name']}</b>{owned}\n"
+            f"💵 <b>{format_money(g['price'])}</b> · ⚔️ <b>+{int(g['attack_buff']*100)}% Atk</b> · 🛡️ <b>+{int(g['defense_buff']*100)}% Def</b>\n"
+            f"<i>{g['desc']}</i>"
+        )
+
+    b2_lines = []
+    for gid, g in items[half:]:
+        owned = " [EQUIPPED ✅]" if gid in user_guns else ""
+        b2_lines.append(
+            f"{g['emoji']} <b>{g['name']}</b>{owned}\n"
+            f"💵 <b>{format_money(g['price'])}</b> · ⚔️ <b>+{int(g['attack_buff']*100)}% Atk</b> · 🛡️ <b>+{int(g['defense_buff']*100)}% Def</b>\n"
+            f"<i>{g['desc']}</i>"
+        )
+
+    return (
+        f"<b>🔫 {title}</b>\n\n"
+        f"<blockquote>🏛️ <b>{font_style('Underground Weapons Exchange')}</b>\n"
+        f"<i>Equip military firepower to boost robbery raids and protect your wealth!</i></blockquote>\n\n"
+        f"<blockquote>" + "\n\n".join(b1_lines) + "</blockquote>\n\n"
+        f"<blockquote>" + "\n\n".join(b2_lines) + "</blockquote>\n\n"
+        f"<blockquote>💡 <i>{font_style('Tap inline buttons below to purchase & equip instantly!')}</i></blockquote>"
+    )
+
+
+def armory_inventory(user_doc: dict[str, Any], guns: dict[str, dict[str, Any]], owned_ids: list[str]) -> str:
+    title = font_style("Personal Weapon Armory")
+    username = user_doc.get("username") or user_doc.get("first_name", "User")
+    if not owned_ids:
+        return (
+            f"<b>🎒 {title}</b>\n\n"
+            f"<blockquote>👤 <b>{font_style('Arsenal of')}:</b> @{username}\n"
+            f"❌ <b>{font_style('Empty Armory')}:</b> You don't own any firearms yet!</blockquote>\n\n"
+            f"<blockquote>💡 <i>{font_style('Browse the black market with')} <code>/guns</code></i></blockquote>"
+        )
+
+    lines = []
+    total_val = 0
+    max_atk = 0
+    max_def = 0
+    for gid in owned_ids:
+        g = guns.get(gid)
+        if g:
+            total_val += g["price"]
+            max_atk = max(max_atk, int(g["attack_buff"] * 100))
+            max_def = max(max_def, int(g["defense_buff"] * 100))
+            lines.append(f"• {g['emoji']} <b>{g['name']}</b> ({format_money(g['price'])})")
+
+    items_text = "\n".join(lines)
+    return (
+        f"<b>🎒 {title}</b>\n\n"
+        f"<blockquote>👤 <b>{font_style('Arsenal of')}:</b> @{username}\n"
+        f"{items_text}</blockquote>\n\n"
+        f"<blockquote>⚔️ <b>{font_style('Active Rob Attack Buff')}:</b> <b>+{max_atk}%</b>\n"
+        f"🛡️ <b>{font_style('Active Rob Defense Buff')}:</b> <b>+{max_def}%</b>\n"
+        f"💎 <b>{font_style('Armory Valuation')}:</b> <b>{format_money(total_val)}</b></blockquote>"
+    )
+
+
+def gun_purchased(gun: dict[str, Any], price: int, tx_id: str) -> str:
+    title = font_style("Firearm Acquired & Equipped")
+    return (
+        f"<b>🔫 {title}</b>\n"
+        f"<blockquote>{gun['emoji']} <b>{font_style('Weapon')}:</b> <b>{gun['name']}</b>\n"
+        f"💵 <b>{font_style('Price Paid')}:</b> <b>{format_money(price)}</b>\n"
+        f"⚔️ <b>{font_style('Rob Attack')}:</b> +{int(gun['attack_buff']*100)}% | 🛡️ <b>{font_style('Rob Defense')}:</b> +{int(gun['defense_buff']*100)}%</blockquote>\n"
+        f"<blockquote>💡 <i>{gun['desc']}</i></blockquote>\n"
+        f"<blockquote>🧾 <code>#{tx_id}</code></blockquote>"
+    )
+

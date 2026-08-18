@@ -31,6 +31,13 @@ class TestParseAmount:
             ("₹500", 50_000),
             ("1,000", 100_000),
             ("0", 0),
+            ("1k", 100_000),
+            ("500k", 50_000_000),
+            ("1.5m", 150_000_000),
+            ("2B", 200_000_000_000),
+            ("1T", 100_000_000_000_000),
+            ("10L", 100_000_000),
+            ("5cr", 5_000_000_000),
         ],
     )
     def test_valid(self, raw, expected):
@@ -43,6 +50,7 @@ class TestParseAmount:
 
     def test_is_valid_amount(self):
         assert is_valid_amount("10.5")
+        assert is_valid_amount("1.5M")
         assert not is_valid_amount("ten")
 
 
@@ -55,11 +63,19 @@ class TestFormatMoney:
             (100_025, "₹1,000.25"),
             (1, "₹0.01"),
             (0, "₹0"),
-            (123_456_789, "₹1,234,567.89"),
+            (10_000_000, "₹100K"),
+            (150_000_000, "₹1.5M"),
+            (250_000_000_000, "₹2.5B"),
+            (100_000_000_000_000, "₹1T"),
+            (123_456_789, "₹1.23M"),
         ],
     )
     def test_format(self, units, expected):
         assert format_money(units) == expected
+
+    def test_format_exact(self):
+        from utils.money import format_exact_money
+        assert format_exact_money(123_456_789) == "₹1,234,567.89"
 
 
 class TestArithmetic:

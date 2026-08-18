@@ -187,7 +187,7 @@ def register(app: Client) -> None:
             except Exception:
                 logger.warning("could not deliver robbery notice to %s", target_id)
 
-    @app.on_message(filters.command("leader") & NOT_CHANNEL)
+    @app.on_message(filters.command(["leader", "leaderboard", "rich", "top"]) & NOT_CHANNEL)
     @safe_handler(feature="leaderboard")
     async def cmd_leader(client: Client, message: Message):
         await ensure_user(client, message)
@@ -200,3 +200,55 @@ def register(app: Client) -> None:
         # Auto-delete after 3 minutes so the tagged leaderboard post stops
         # cluttering the chat for other users.
         schedule_delete(client, sent, delay=LEADERBOARD_AUTO_DELETE_SECONDS)
+
+    @app.on_message(filters.command(["networth", "nw"]) & NOT_CHANNEL)
+    @safe_handler(feature="economy")
+    async def cmd_networth(client: Client, message: Message):
+        await ensure_user(client, message)
+        target_id = target_from_message(message)
+        args = message.command[1:]
+        if target_id is None and args:
+            parsed = parse_target_arg(args[0])
+            if parsed is not None:
+                pid, username = parsed
+                if pid == -1:
+                    doc = await users_db.get_user_by_username(username)
+                    if doc is None:
+                        await reply_html(client, message, msgs.error("User not found."))
+                        return
+                    target_id = doc["user_id"]
+                else:
+                    target_id = pid
+        if target_id is None:
+            target_id = message.from_user.id
+
+        user = await users_db.get_or_create_user(target_id)
+        from database import stocks as stocks_db
+        from services import assets as asset_service
+        from utils.money import multiply
+        
+        live_stocks = 0
+        holdings = await stocks_db.get_user_holdings(target_id)
+        for h in holdings:
+            asset = await stocks_db.get_asset(h["symbol"])
+            if asset:
+                live_stocks += multiply(int(asset.get("price", 0)), h["quantity"])
+        live_assets = await asset_service.live_asset_value(target_id)
+        
+        wallet = int(user.get("wallet", 0))
+        bank = int(user.get("bank", 0))
+        total_nw = wallet + bank + live_stocks + live_assets
+        
+        user_display = f"@{user['username']}" if user.get("username") else (user.get("first_name") or "User")
+        text = (
+            f"<b>💎 NET WORTH BREAKDOWN</b> — <b>{user_display}</b>\n"
+            f"<blockquote>"
+            f"💵 <b>Wallet:</b> {format_money(wallet)}\n"
+            f"🏦 <b>Bank:</b> {format_money(bank)}\n"
+            f"📈 <b>Stocks Portfolio:</b> {format_money(live_stocks)}\n"
+            f"🏢 <b>Assets Portfolio:</b> {format_money(live_assets)}\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"👑 <b>Total Net Worth:</b> <b>{format_money(total_nw)}</b>"
+            f"</blockquote>"
+        )
+        await reply_html(client, message, text)

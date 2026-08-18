@@ -67,3 +67,60 @@ def register(app: Client) -> None:
         recent = await tx_service.get_recent_transfers(message.from_user.id, 10)
         rows = [msgs.transaction_row(tx) for tx in recent]
         await reply_html(client, message, msgs.transactions_list(rows, not rows))
+
+    @app.on_message(filters.command(["loan", "borrow"]) & NOT_CHANNEL)
+    @safe_handler(feature="economy")
+    async def cmd_loan(client: Client, message: Message):
+        await ensure_user(client, message)
+        from services import loan as loan_service
+        args = message.command[1:]
+        if not args:
+            status = await loan_service.get_loan_status(message.from_user.id)
+            await reply_html(client, message, msgs.loan_status_view(status))
+            return
+
+        amount, err = parse_amount_or_error(args[0])
+        if err:
+            await reply_html(client, message, msgs.error(f"Usage: <code>/loan amount</code>. {err}"))
+            return
+
+        try:
+            res = await loan_service.take_loan(message.from_user.id, amount)
+            await reply_html(
+                client, message,
+                msgs.loan_taken(res["principal"], res["interest_fee"], res["total_debt"], res["tx_id"])
+            )
+        except Exception as e:
+            await reply_html(client, message, msgs.error(str(e)))
+
+    @app.on_message(filters.command("repay") & NOT_CHANNEL)
+    @safe_handler(feature="economy")
+    async def cmd_repay(client: Client, message: Message):
+        await ensure_user(client, message)
+        from services import loan as loan_service
+        args = message.command[1:]
+        amount = None
+        if args:
+            parsed, err = parse_amount_or_error(args[0])
+            if err:
+                await reply_html(client, message, msgs.error(f"Usage: <code>/repay [amount]</code>. {err}"))
+                return
+            amount = parsed
+
+        try:
+            res = await loan_service.repay_loan(message.from_user.id, amount)
+            await reply_html(
+                client, message,
+                msgs.loan_repaid(res["repaid"], res["remaining_debt"], res["is_fully_cleared"], res["tx_id"])
+            )
+        except Exception as e:
+            await reply_html(client, message, msgs.error(str(e)))
+
+    @app.on_message(filters.command(["loans", "loanstatus"]) & NOT_CHANNEL)
+    @safe_handler(feature="economy")
+    async def cmd_loanstatus(client: Client, message: Message):
+        await ensure_user(client, message)
+        from services import loan as loan_service
+        status = await loan_service.get_loan_status(message.from_user.id)
+        await reply_html(client, message, msgs.loan_status_view(status))
+
